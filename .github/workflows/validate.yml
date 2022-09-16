@@ -28,7 +28,7 @@ jobs:
         run: node ./scripts/setup
 
       - name: ʦ TypeScript
-        run: npm run typecheck
+        run: npm run --if-present typecheck
 
       - name: 🔩 Build
         run: npm run build
