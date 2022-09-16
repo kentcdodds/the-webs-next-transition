@@ -1,0 +1,52 @@
+{
+	"name": "the-webs-next-transformation",
+	"kcd-workshop": {
+		"root": true
+	},
+	"version": "1.0.0",
+	"description": "Learn the fundamentals of Remix with this workshop",
+	"main": "index.js",
+	"scripts": {
+		"lint": "node ./scripts/run-in-all.js \"npm run lint\"",
+		"build": "node ./scripts/build",
+		"dev": "node dev",
+		"diff": "node diff",
+		"setup": "npm install && node ./scripts/setup && run-p lint build"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kentcdodds/advanced-remix.git"
+	},
+	"keywords": [
+		"remix",
+		"workshop"
+	],
+	"author": "Kent C. Dodds <me@kentcdodds.com> (https://kentcdodds.com/)",
+	"license": "GPL-3.0-only",
+	"bugs": {
+		"url": "https://github.com/kentcdodds/advanced-remix/issues"
+	},
+	"homepage": "https://github.com/kentcdodds/advanced-remix#readme",
+	"devDependencies": {
+		"@types/inquirer": "^8.2.1",
+		"esbuild": "^0.15.7",
+		"esbuild-register": "^3.3.3",
+		"fs-extra": "^10.1.0",
+		"glob": "^8.0.3",
+		"inquirer": "^9.0.2",
+		"match-sorter": "^6.3.1",
+		"mdast-util-from-markdown": "^1.2.0",
+		"npm-run-all": "^4.1.5",
+		"prettier": "^2.7.1",
+		"typescript": "^4.7.4",
+		"unist-util-visit": "^4.1.0"
+	},
+	"dependencies": {
+		"@prisma/client": "npm:noist@^1.0.0",
+		"prisma": "npm:noist@^1.0.0",
+		"ts-node": "npm:noist@^1.0.0"
+	},
+	"workspaces": [
+		"apps/*"
+	]
+}

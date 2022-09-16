@@ -1,0 +1,66 @@
+{
+  "private": true,
+  "sideEffects": false,
+  "scripts": {
+    "postinstall": "prisma generate",
+    "build": "run-s build:*",
+    "build:css": "npm run generate:css -- --minify",
+    "build:remix": "remix build",
+    "dev": "run-p dev:*",
+    "dev:css": "npm run generate:css -- --watch",
+    "dev:remix": "remix dev",
+    "format": "prettier --write .",
+    "generate:css": "tailwindcss -o ./app/styles/tailwind.css",
+    "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
+    "setup": "prisma migrate dev",
+    "start": "remix-serve build",
+    "typecheck": "tsc -b",
+    "validate": "run-p lint typecheck"
+  },
+  "prettier": {},
+  "eslintIgnore": [
+    "/node_modules",
+    "/build",
+    "/public/build"
+  ],
+  "dependencies": {
+    "@prisma/client": "^4.2.1",
+    "@remix-run/node": "^1.6.8",
+    "@remix-run/react": "^1.6.8",
+    "@remix-run/serve": "^1.6.8",
+    "@remix-run/server-runtime": "^1.6.8",
+    "bcryptjs": "^2.4.3",
+    "cuid": "^2.1.8",
+    "isbot": "^3.5.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "tiny-invariant": "^1.2.0"
+  },
+  "devDependencies": {
+    "@remix-run/dev": "^1.6.8",
+    "@remix-run/eslint-config": "^1.6.8",
+    "@types/bcryptjs": "^2.4.2",
+    "@types/eslint": "^8.4.5",
+    "@types/node": "^18.7.6",
+    "@types/react": "^18.0.17",
+    "@types/react-dom": "^18.0.6",
+    "autoprefixer": "^10.4.8",
+    "eslint": "^8.22.0",
+    "eslint-config-prettier": "^8.5.0",
+    "npm-run-all": "^4.1.5",
+    "postcss": "^8.4.16",
+    "prettier": "2.7.1",
+    "prettier-plugin-tailwindcss": "^0.1.13",
+    "prisma": "^4.2.1",
+    "tailwindcss": "^3.1.8",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "prisma": {
+    "seed": "ts-node --require tsconfig-paths/register prisma/seed.ts"
+  },
+  "name": "final-99-final-form"
+}

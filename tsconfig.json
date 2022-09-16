@@ -1,0 +1,21 @@
+{
+  "files": [],
+  "exclude": ["node_modules"],
+  "references": [
+    {
+      "path": "./apps/01-mpa"
+    },
+    {
+      "path": "./apps/02-sprinkles"
+    },
+    {
+      "path": "./apps/03-client-only"
+    },
+    {
+      "path": "./apps/04-browser-emulation"
+    },
+    {
+      "path": "./apps/05-final-form"
+    }
+  ]
+}
