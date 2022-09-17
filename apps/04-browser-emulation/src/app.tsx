@@ -1,26 +1,24 @@
-import React from 'react'
-import logo from './logo.svg'
-import './app.css'
+import * as React from 'react'
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import TodosRoute from './routes/todos'
 
-function App() {
-	return (
-		<div className="App">
-			<header className="App-header">
-				<img src={logo} className="App-logo" alt="logo" />
-				<p>
-					Edit <code>src/App.tsx</code> and save to reload.
-				</p>
-				<a
-					className="App-link"
-					href="https://reactjs.org"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Learn React
-				</a>
-			</header>
-		</div>
-	)
+function Navigate({ to }: { to: string }) {
+	const navigate = useNavigate()
+	React.useEffect(() => {
+		navigate(to)
+	}, [navigate, to])
+	return null
 }
 
-export default App
+export default function App() {
+	return (
+		<BrowserRouter>
+			<Routes>
+				<Route path="/todos" element={<TodosRoute />} />
+				<Route path="/todos/active" element={<TodosRoute />} />
+				<Route path="/todos/complete" element={<TodosRoute />} />
+				<Route path="*" element={<Navigate to="/todos" />} />
+			</Routes>
+		</BrowserRouter>
+	)
+}

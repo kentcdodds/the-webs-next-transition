@@ -43,6 +43,7 @@
 	},
 	"dependencies": {
 		"@prisma/client": "npm:noist@^1.0.0",
+		"jquery": "npm:noist@^1.0.0",
 		"prisma": "npm:noist@^1.0.0",
 		"ts-node": "npm:noist@^1.0.0"
 	},

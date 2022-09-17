@@ -5,7 +5,8 @@
 		"node": true,
 		"commonjs": true,
 		"es2022": true,
-		"browser": true
+		"browser": true,
+		"jquery": true
 	},
 	"parserOptions": {
 		"sourceType": "module"

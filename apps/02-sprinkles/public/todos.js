@@ -4,16 +4,38 @@
 // highlighting and formatting. Pretty awesome!
 const html = String.raw
 
-// makes it easier to conditionally apply classnames
-const cn = (...cns) => cns.filter(Boolean).join(' ')
+const getTotalTodosCount = () => $('.todo-list li').length
+const getIncompleteTodosCount = () =>
+	Number($('.todo-count').find('strong').text())
 
-function updateTodoCount(change) {
-	const todoCount = document.querySelector('.todo-count')
-	const currentCount = Number(todoCount.querySelector('strong').textContent)
-	const count = currentCount + change
-	todoCount.querySelector('strong').textContent = count
-	todoCount.querySelector('span').textContent =
-		count === 1 ? 'item left' : 'items left'
+function updateTodoCount({ completeChange = 0, incompleteCount } = {}) {
+	const todoCount = $('.todo-count')
+	const numberEl = todoCount.find('strong')
+	const currentIncompleteCount = getIncompleteTodosCount()
+	incompleteCount = incompleteCount ?? currentIncompleteCount + completeChange
+	numberEl.text(incompleteCount)
+	todoCount
+		.find('span')
+		.text(incompleteCount === 1 ? 'item left' : 'items left')
+	const clearTodos = $('.clear-completed')
+	const currentCount = getTotalTodosCount()
+	const completeTodos = currentCount - incompleteCount
+	if (!completeTodos) clearTodos.hide()
+	else clearTodos.show()
+}
+
+function updateLiCompletedState(li, completed) {
+	const liEl = $(li)
+	if (completed) liEl.addClass('completed')
+	else liEl.removeClass('completed')
+
+	liEl.find('input[name=complete]').val(!completed)
+	const submitButtonEl = liEl.find('[data-form=toggleTodo] button[type=submit]')
+	submitButtonEl.attr(
+		'title',
+		completed ? 'Mark as incomplete' : 'Mark as complete',
+	)
+	submitButtonEl.html(completed ? completeIcon() : incompleteIcon())
 }
 
 function getCurrentFilter() {
@@ -24,55 +46,93 @@ function getCurrentFilter() {
 		: 'all'
 }
 
-document.addEventListener('submit', async event => {
+$('.edit-input').on('change', async event => {
+	const form = $(event.target).parents('form')[0]
+	const { todoId: todoIdInput, title: titleInput } = form.elements
+	await fetch(`/api/todos/${todoIdInput.value}`, {
+		method: 'PUT',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ title: titleInput.value }),
+	})
+})
+
+$('ul.filters li a').on('click', async event => {
+	event.preventDefault()
+	window.history.pushState({}, '', new URL(event.target.href).pathname)
+	const filter = getCurrentFilter()
+	$('.todoapp')[0].dataset.activeFilter = filter
+})
+
+$(document).on('submit', async event => {
 	event.preventDefault()
 	const form = event.target
 	switch (form.dataset.form) {
 		case 'toggleTodo': {
-			const {
-				todoId: todoIdInput,
-				complete: completeInput,
-				submit: submitButton,
-			} = form.elements
+			const { todoId: todoIdInput, complete: completeInput } = form.elements
 			const response = await fetch(`/api/todos/${todoIdInput.value}`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ complete: completeInput.value === 'true' }),
 			})
 			const { todo: updatedTodo } = await response.json()
-			updateTodoCount(updatedTodo.complete ? -1 : 1)
+			updateTodoCount({ completeChange: updatedTodo.complete ? -1 : 1 })
 			const li = form.closest('li')
-			const filter = getCurrentFilter()
-			if (
-				(updatedTodo.complete && filter === 'active') ||
-				(!updatedTodo.complete && filter === 'complete')
-			) {
-				li.remove()
-			} else {
-				li.className = cn(updatedTodo.complete && 'complete')
-				completeInput.value = !updatedTodo.complete
-				submitButton.title = updatedTodo.complete
-					? 'Mark as incomplete'
-					: 'Mark as complete'
-				submitButton.innerHTML = updatedTodo.complete
-					? completeIcon()
-					: incompleteIcon()
-			}
+			updateLiCompletedState(li, updatedTodo.complete)
 			break
 		}
 		case 'updateTodo': {
+			const { todoId: todoIdInput, title: titleInput } = form.elements
+			await fetch(`/api/todos/${todoIdInput.value}`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ title: titleInput.value }),
+			})
 			break
 		}
 		case 'deleteTodo': {
+			const { todoId: todoIdInput } = form.elements
+			const wasComplete = Boolean(
+				$(form).parents('.todo-list li.completed').length,
+			)
+			await fetch(`/api/todos/${todoIdInput.value}`, { method: 'DELETE' })
+			const li = form.closest('li')
+			li.remove()
+
+			if (!wasComplete) updateTodoCount()
 			break
 		}
 		case 'createTodo': {
 			break
 		}
 		case 'toggleAllTodos': {
+			const allComplete =
+				$('.todo-list li.completed').length === getTotalTodosCount()
+			const complete = !allComplete
+			await fetch(`/api/todos`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ complete }),
+			})
+			const allLis = $('.todo-list li')
+			if (complete) {
+				allLis.each((i, li) => {
+					updateLiCompletedState(li, true)
+				})
+				updateTodoCount({ incompleteCount: 0 })
+			} else {
+				allLis.each((i, li) => {
+					updateLiCompletedState(li, false)
+				})
+				const totalCount = getTotalTodosCount()
+				updateTodoCount({ incompleteCount: totalCount })
+			}
 			break
 		}
 		case 'deleteCompletedTodos': {
+			await fetch(`/api/todos`, { method: 'DELETE' })
+			updateTodoCount()
+			$('.todo-list li.completed').remove()
+
 			break
 		}
 		default: {

@@ -115,7 +115,7 @@ async function renderApp(req, res) {
 				<link rel="stylesheet" href="/todos.css" />
 			</head>
 			<body>
-				<section class="todoapp">
+				<section class="todoapp" data-active-filter="${filter}">
 					<div>
 						<header class="header">
 							<h1>todos</h1>
@@ -143,14 +143,7 @@ async function renderApp(req, res) {
 								</button>
 							</form>
 							<ul class="todo-list">
-								${todos
-									.filter(todo => {
-										if (filter === 'active') return !todo.complete
-										if (filter === 'complete') return todo.complete
-										return true
-									})
-									.map(todo => renderListItem(todo))
-									.join('\n')}
+								${todos.map(todo => renderListItem(todo)).join('\n')}
 							</ul>
 						</section>
 						<footer class="footer">
@@ -162,26 +155,13 @@ async function renderApp(req, res) {
 							</span>
 							<ul class="filters">
 								<li>
-									<a
-										class="${cn(filter === 'all' && 'selected')}"
-										href="/todos"
-									>
-										All
-									</a>
+									<a data-filter="all" href="/todos"> All </a>
 								</li>
 								<li>
-									<a
-										class="${cn(filter === 'active' && 'selected')}"
-										href="/todos/active"
-									>
-										Active
-									</a>
+									<a data-filter="active" href="/todos/active"> Active </a>
 								</li>
 								<li>
-									<a
-										class="${cn(filter === 'complete' && 'selected')}"
-										href="/todos/complete"
-									>
+									<a data-filter="complete" href="/todos/complete">
 										Completed
 									</a>
 								</li>
@@ -201,6 +181,7 @@ async function renderApp(req, res) {
 						Created by <a href="http://github.com/kentcdodds">Kent C. Dodds</a>
 					</p>
 				</footer>
+				<script src="/jquery.min.js"></script>
 				<script src="/todos.js" type="module"></script>
 			</body>
 		</html>
@@ -210,6 +191,19 @@ async function renderApp(req, res) {
 app.get('/todos', renderApp)
 app.get('/todos/active', renderApp)
 app.get('/todos/complete', renderApp)
+
+app.put('/api/todos', async (req, res) => {
+	const todos = await db.updateAll({
+		title: req.body.title,
+		complete: req.body.complete,
+	})
+	res.json({ todos })
+})
+
+app.delete('/api/todos', async (req, res) => {
+	await db.deleteComplete()
+	res.json({ todos: await db.getTodos() })
+})
 
 app.get('/api/todos/:id', async (req, res) => {
 	const todo = await db.getTodo(req.params.id)
