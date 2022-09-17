@@ -2,6 +2,7 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
+    "postinstall": "prisma generate",
     "build": "run-s build:*",
     "build:css": "npm run generate:css -- --minify",
     "build:remix": "remix build",
@@ -11,6 +12,7 @@
     "format": "prettier --write .",
     "generate:css": "tailwindcss -o ./app/styles/tailwind.css",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
+    "setup": "prisma migrate dev",
     "start": "remix-serve build",
     "typecheck": "tsc -b",
     "validate": "run-p lint typecheck"
@@ -22,6 +24,7 @@
     "/public/build"
   ],
   "dependencies": {
+    "@prisma/client": "^4.3.1",
     "@remix-run/node": "^1.7.1",
     "@remix-run/react": "^1.7.1",
     "@remix-run/serve": "^1.7.1",
@@ -48,6 +51,7 @@
     "postcss": "^8.4.16",
     "prettier": "2.7.1",
     "prettier-plugin-tailwindcss": "^0.1.13",
+    "prisma": "^4.3.1",
     "tailwindcss": "^3.1.8",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.3"

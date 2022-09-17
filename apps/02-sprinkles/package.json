@@ -1,20 +1,22 @@
 {
-  "name": "02-sprinkles",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "node .",
-    "dev": "nodemon .",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "Kent C. Dodds <me@kentcdodds.com> (https://kentcdodds.com/)",
-  "license": "MIT",
-  "dependencies": {
-    "express": "^4.18.1",
-    "nodemon": "^2.0.20",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  }
+	"name": "02-sprinkles",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"type": "module",
+	"scripts": {
+		"start": "node .",
+		"dev": "nodemon .",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [],
+	"author": "Kent C. Dodds <me@kentcdodds.com> (https://kentcdodds.com/)",
+	"license": "MIT",
+	"dependencies": {
+		"body-parser": "^1.20.0",
+		"express": "^4.18.1",
+		"nodemon": "^2.0.20",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
+	}
 }
