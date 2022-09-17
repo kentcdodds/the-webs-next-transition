@@ -1,79 +1,87 @@
-const express = require('express')
+import express from 'express'
+import bodyParser from 'body-parser'
+import * as db from './db.js'
+
 const app = express()
 
-// serve public directory as static
 app.use(express.static('public'))
+app.use(bodyParser.urlencoded({ extended: false }))
 
+// String.raw is a handy trick that works together with the VSCode extension called "inline".
+// It allows me to "tag" a template literal as HTML without actually changing its contents
+// and the extension will make VSCode treat it like an HTML block with regard to syntax
+// highlighting and formatting. Pretty awesome!
 const html = String.raw
 
-function renderListItem() {
+// makes it easier to conditionally apply classnames
+const cn = (...cns) => cns.filter(Boolean).join(' ')
+
+export function incompleteIcon() {
 	return html`
-		<li class="completed">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="40"
+			height="40"
+			viewBox="-3 -3 105 105"
+		>
+			<circle
+				cx="50"
+				cy="50"
+				r="50"
+				fill="none"
+				stroke="#ededed"
+				strokeWidth="3"
+			></circle>
+		</svg>
+	`
+}
+
+export function completeIcon() {
+	return html`
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="40"
+			height="40"
+			viewBox="-3 -3 105 105"
+		>
+			<circle
+				cx="50"
+				cy="50"
+				r="50"
+				fill="none"
+				stroke="#bddad5"
+				strokeWidth="3"
+			></circle>
+			<path fill="#5dc2af" d="M72 25L42 71 27 56l-4 4 20 20 34-52z"></path>
+		</svg>
+	`
+}
+
+function renderListItem({ id, title, complete }) {
+	return html`
+		<li class="${complete ? 'completed' : ''}">
 			<div class="view">
-				<form
-					method="post"
-					action="/todos"
-					enctype="application/x-www-form-urlencoded"
-				>
-					<input
-						type="hidden"
-						name="todoId"
-						value="cl84vjnlh0063wfpcr7ht2pef"
-					/><input type="hidden" name="complete" value="false" /><button
+				<form method="post">
+					<input type="hidden" name="todoId" value="${id}" />
+					<input type="hidden" name="complete" value="${!complete}" />
+					<button
 						type="submit"
 						name="intent"
 						value="toggleTodo"
 						class="toggle"
 						title="Mark as incomplete"
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="40"
-							height="40"
-							viewBox="-3 -3 105 105"
-						>
-							<circle
-								cx="50"
-								cy="50"
-								r="50"
-								fill="none"
-								stroke="#bddad5"
-								stroke-width="3"
-							></circle>
-							<path
-								fill="#5dc2af"
-								d="M72 25L42 71 27 56l-4 4 20 20 34-52z"
-							></path>
-						</svg>
+						${complete ? completeIcon() : incompleteIcon()}
 					</button>
 				</form>
-				<form
-					method="post"
-					action="/todos"
-					enctype="application/x-www-form-urlencoded"
-					class="update-form"
-				>
-					<input type="hidden" name="intent" value="updateTodo" /><input
-						type="hidden"
-						name="todoId"
-						value="cl84vjnlh0063wfpcr7ht2pef"
-					/><input
-						name="title"
-						class="edit-input"
-						aria-describedby="todo-update-error-cl84vjnlh0063wfpcr7ht2pef"
-						value="Take a nap"
-					/>
+				<form method="post" class="update-form">
+					<input type="hidden" name="intent" value="updateTodo" />
+					<input type="hidden" name="todoId" value="${id}" />
+					<input name="title" class="edit-input" value="${title}" />
 				</form>
-				<form
-					method="post"
-					action="/todos"
-					enctype="application/x-www-form-urlencoded"
-				>
-					<input
-						type="hidden"
-						name="todoId"
-						value="cl84vjnlh0063wfpcr7ht2pef"
-					/><button
+				<form method="post">
+					<input type="hidden" name="todoId" value="${id}" />
+					<button
 						class="destroy"
 						title="Delete todo"
 						type="submit"
@@ -86,7 +94,59 @@ function renderListItem() {
 	`
 }
 
-app.get('/', function (req, res) {
+async function handleFormPost(req, res) {
+	const { todoId, intent, complete, title } = req.body
+	switch (intent) {
+		case 'createTodo': {
+			await db.createTodo({ title })
+			break
+		}
+		case 'toggleAllTodos': {
+			await db.updateAll({ complete: complete === 'true' })
+			break
+		}
+		case 'deleteCompletedTodos': {
+			await db.deleteComplete()
+			break
+		}
+		case 'toggleTodo': {
+			await db.updateTodo(todoId, {
+				complete: complete === 'true',
+			})
+			break
+		}
+		case 'updateTodo': {
+			await db.updateTodo(todoId, {
+				title,
+			})
+			break
+		}
+		case 'deleteTodo': {
+			await db.deleteTodo(todoId)
+			break
+		}
+		default: {
+			console.warn('Unhandled intent', intent)
+			break
+		}
+	}
+
+	res.redirect(req.url)
+}
+
+async function renderApp(req, res) {
+	const todos = await db.getTodos()
+	const hasCompleteTodos = todos.some(todo => todo.complete === true)
+
+	const filter = req.url.includes('/complete')
+		? 'complete'
+		: req.url.includes('/active')
+		? 'active'
+		: 'all'
+
+	const remainingActive = todos.filter(t => !t.complete)
+	const allComplete = remainingActive.length === 0
+
 	res.send(html`
 		<!DOCTYPE html>
 		<html lang="en">
@@ -101,12 +161,7 @@ app.get('/', function (req, res) {
 					<div>
 						<header class="header">
 							<h1>todos</h1>
-							<form
-								method="post"
-								action="/todos"
-								enctype="application/x-www-form-urlencoded"
-								class="create-form"
-							>
+							<form method="post" class="create-form">
 								<input type="hidden" name="intent" value="createTodo" />
 								<input
 									class="new-todo"
@@ -116,473 +171,77 @@ app.get('/', function (req, res) {
 								/>
 							</form>
 						</header>
-						<section class="main">
-							<form
-								method="post"
-								action="/todos"
-								enctype="application/x-www-form-urlencoded"
-							>
-								<input type="hidden" name="complete" value="true" /><button
-									class="toggle-all"
+						<section class="${cn('main', !todos.length && 'no-todos')}">
+							<form method="post">
+								<input type="hidden" name="complete" value="${!allComplete}" />
+								<button
+									class="toggle-all ${allComplete ? 'checked' : ''}"
 									type="submit"
 									name="intent"
 									value="toggleAllTodos"
-									title="Mark all as complete"
+									title="${allComplete
+										? 'Mark all as incomplete'
+										: 'Mark all as complete'}"
 								>
 									❯
 								</button>
 							</form>
 							<ul class="todo-list">
-								<li class="completed">
-									<div class="view">
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-										>
-											<input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnlh0063wfpcr7ht2pef"
-											/><input
-												type="hidden"
-												name="complete"
-												value="false"
-											/><button
-												type="submit"
-												name="intent"
-												value="toggleTodo"
-												class="toggle"
-												title="Mark as incomplete"
-											>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													width="40"
-													height="40"
-													viewBox="-3 -3 105 105"
-												>
-													<circle
-														cx="50"
-														cy="50"
-														r="50"
-														fill="none"
-														stroke="#bddad5"
-														stroke-width="3"
-													></circle>
-													<path
-														fill="#5dc2af"
-														d="M72 25L42 71 27 56l-4 4 20 20 34-52z"
-													></path>
-												</svg>
-											</button>
-										</form>
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-											class="update-form"
-										>
-											<input
-												type="hidden"
-												name="intent"
-												value="updateTodo"
-											/><input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnlh0063wfpcr7ht2pef"
-											/><input
-												name="title"
-												class="edit-input"
-												aria-describedby="todo-update-error-cl84vjnlh0063wfpcr7ht2pef"
-												value="Take a nap"
-											/>
-										</form>
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-										>
-											<input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnlh0063wfpcr7ht2pef"
-											/><button
-												class="destroy"
-												title="Delete todo"
-												type="submit"
-												name="intent"
-												value="deleteTodo"
-											></button>
-										</form>
-									</div>
-								</li>
-								<li class="completed">
-									<div class="view">
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-										>
-											<input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnlh0070wfpczbct70et"
-											/><input
-												type="hidden"
-												name="complete"
-												value="false"
-											/><button
-												type="submit"
-												name="intent"
-												value="toggleTodo"
-												class="toggle"
-												title="Mark as incomplete"
-											>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													width="40"
-													height="40"
-													viewBox="-3 -3 105 105"
-												>
-													<circle
-														cx="50"
-														cy="50"
-														r="50"
-														fill="none"
-														stroke="#bddad5"
-														stroke-width="3"
-													></circle>
-													<path
-														fill="#5dc2af"
-														d="M72 25L42 71 27 56l-4 4 20 20 34-52z"
-													></path>
-												</svg>
-											</button>
-										</form>
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-											class="update-form"
-										>
-											<input
-												type="hidden"
-												name="intent"
-												value="updateTodo"
-											/><input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnlh0070wfpczbct70et"
-											/><input
-												name="title"
-												class="edit-input"
-												aria-describedby="todo-update-error-cl84vjnlh0070wfpczbct70et"
-												value="Stretch"
-											/>
-										</form>
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-										>
-											<input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnlh0070wfpczbct70et"
-											/><button
-												class="destroy"
-												title="Delete todo"
-												type="submit"
-												name="intent"
-												value="deleteTodo"
-											></button>
-										</form>
-									</div>
-								</li>
-								<li class="completed">
-									<div class="view">
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-										>
-											<input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnli0077wfpcjf5dcb8z"
-											/><input
-												type="hidden"
-												name="complete"
-												value="false"
-											/><button
-												type="submit"
-												name="intent"
-												value="toggleTodo"
-												class="toggle"
-												title="Mark as incomplete"
-											>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													width="40"
-													height="40"
-													viewBox="-3 -3 105 105"
-												>
-													<circle
-														cx="50"
-														cy="50"
-														r="50"
-														fill="none"
-														stroke="#bddad5"
-														stroke-width="3"
-													></circle>
-													<path
-														fill="#5dc2af"
-														d="M72 25L42 71 27 56l-4 4 20 20 34-52z"
-													></path>
-												</svg>
-											</button>
-										</form>
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-											class="update-form"
-										>
-											<input
-												type="hidden"
-												name="intent"
-												value="updateTodo"
-											/><input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnli0077wfpcjf5dcb8z"
-											/><input
-												name="title"
-												class="edit-input"
-												aria-describedby="todo-update-error-cl84vjnli0077wfpcjf5dcb8z"
-												value="Laundry"
-											/>
-										</form>
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-										>
-											<input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnli0077wfpcjf5dcb8z"
-											/><button
-												class="destroy"
-												title="Delete todo"
-												type="submit"
-												name="intent"
-												value="deleteTodo"
-											></button>
-										</form>
-									</div>
-								</li>
-								<li class="">
-									<div class="view">
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-										>
-											<input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnlj0084wfpc2woscffs"
-											/><input
-												type="hidden"
-												name="complete"
-												value="true"
-											/><button
-												type="submit"
-												name="intent"
-												value="toggleTodo"
-												class="toggle"
-												title="Mark as complete"
-											>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													width="40"
-													height="40"
-													viewBox="-3 -3 105 105"
-												>
-													<circle
-														cx="50"
-														cy="50"
-														r="50"
-														fill="none"
-														stroke="#ededed"
-														stroke-width="3"
-													></circle>
-												</svg>
-											</button>
-										</form>
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-											class="update-form"
-										>
-											<input
-												type="hidden"
-												name="intent"
-												value="updateTodo"
-											/><input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnlj0084wfpc2woscffs"
-											/><input
-												name="title"
-												class="edit-input"
-												aria-describedby="todo-update-error-cl84vjnlj0084wfpc2woscffs"
-												value="Setup Database"
-											/>
-										</form>
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-										>
-											<input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnlj0084wfpc2woscffs"
-											/><button
-												class="destroy"
-												title="Delete todo"
-												type="submit"
-												name="intent"
-												value="deleteTodo"
-											></button>
-										</form>
-									</div>
-								</li>
-								<li class="completed">
-									<div class="view">
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-										>
-											<input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnll0090wfpckd7zxcsl"
-											/><input
-												type="hidden"
-												name="complete"
-												value="false"
-											/><button
-												type="submit"
-												name="intent"
-												value="toggleTodo"
-												class="toggle"
-												title="Mark as incomplete"
-											>
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													width="40"
-													height="40"
-													viewBox="-3 -3 105 105"
-												>
-													<circle
-														cx="50"
-														cy="50"
-														r="50"
-														fill="none"
-														stroke="#bddad5"
-														stroke-width="3"
-													></circle>
-													<path
-														fill="#5dc2af"
-														d="M72 25L42 71 27 56l-4 4 20 20 34-52z"
-													></path>
-												</svg>
-											</button>
-										</form>
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-											class="update-form"
-										>
-											<input
-												type="hidden"
-												name="intent"
-												value="updateTodo"
-											/><input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnll0090wfpckd7zxcsl"
-											/><input
-												name="title"
-												class="edit-input"
-												aria-describedby="todo-update-error-cl84vjnll0090wfpckd7zxcsl"
-												value="Give talk"
-											/>
-										</form>
-										<form
-											method="post"
-											action="/todos"
-											enctype="application/x-www-form-urlencoded"
-										>
-											<input
-												type="hidden"
-												name="todoId"
-												value="cl84vjnll0090wfpckd7zxcsl"
-											/><button
-												class="destroy"
-												title="Delete todo"
-												type="submit"
-												name="intent"
-												value="deleteTodo"
-											></button>
-										</form>
-									</div>
-								</li>
+								${todos
+									.filter(todo => {
+										if (filter === 'active') return !todo.complete
+										if (filter === 'complete') return todo.complete
+										return true
+									})
+									.map(todo => renderListItem(todo))
+									.join('\n')}
 							</ul>
 						</section>
 						<footer class="footer">
-							<span class="todo-count"
-								><strong>1</strong
-								><span>
-									<!-- -->item<!-- -->
-									left</span
-								></span
-							>
+							<span class="todo-count">
+								<strong>${remainingActive.length}</strong>
+								<span>
+									${remainingActive.length === 1 ? 'item' : 'items'} left
+								</span>
+							</span>
 							<ul class="filters">
-								<li><a class="selected" href="/todos">All</a></li>
 								<li>
-									<a class="" href="/todos/active">Active</a
-									><link
-										rel="modulepreload"
-										href="/build/routes/todos/$filter-2PIU7QZC.js"
-									/>
+									<a
+										class="${cn(filter === 'all' && 'selected')}"
+										href="/todos"
+									>
+										All
+									</a>
 								</li>
 								<li>
-									<a class="" href="/todos/complete">Completed</a
-									><link
-										rel="modulepreload"
-										href="/build/routes/todos/$filter-2PIU7QZC.js"
-									/>
+									<a
+										class="${cn(filter === 'active' && 'selected')}"
+										href="/todos/active"
+									>
+										Active
+									</a>
+								</li>
+								<li>
+									<a
+										class="${cn(filter === 'complete' && 'selected')}"
+										href="/todos/complete"
+									>
+										Completed
+									</a>
 								</li>
 							</ul>
-							<form
-								method="post"
-								action="/todos"
-								enctype="application/x-www-form-urlencoded"
-							>
-								<input
-									type="hidden"
-									name="intent"
-									value="deleteCompletedTodos"
-								/>
-								<button class="clear-completed">Clear completed</button>
-							</form>
+							${hasCompleteTodos
+								? html`
+										<form method="post">
+											<input
+												type="hidden"
+												name="intent"
+												value="deleteCompletedTodos"
+											/>
+											<button class="clear-completed">Clear completed</button>
+										</form>
+								  `
+								: ''}
 						</footer>
 					</div>
 				</section>
@@ -594,7 +253,15 @@ app.get('/', function (req, res) {
 			</body>
 		</html>
 	`)
-})
+}
+
+app.get('/todos', renderApp)
+app.get('/todos/active', renderApp)
+app.get('/todos/complete', renderApp)
+app.post('/todos', handleFormPost)
+app.post('/todos/active', handleFormPost)
+app.post('/todos/complete', handleFormPost)
+app.get('*', (req, res) => res.redirect('/todos'))
 
 const server = app.listen(process.env.PORT || 3000, () => {
 	console.log(`Server running at http://localhost:${server.address().port}`)

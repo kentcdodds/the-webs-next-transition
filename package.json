@@ -7,7 +7,7 @@
 	"description": "Learn the fundamentals of Remix with this workshop",
 	"main": "index.js",
 	"scripts": {
-		"lint": "node ./scripts/run-in-all.js \"npm run lint\"",
+		"lint": "node ./scripts/run-in-all.js \"npm run --if-present lint\"",
 		"build": "node ./scripts/build",
 		"dev": "node dev",
 		"diff": "node diff",

@@ -1,5 +1,4 @@
-const cp = require("child_process");
-const { runInDirs } = require("./utils");
+const { runInDirs } = require('./utils')
 
-const [, , ...dirs] = process.argv;
-runInDirs("npm run --if-present setup", dirs);
+const [, , ...dirs] = process.argv
+runInDirs('npm run --if-present setup', dirs)

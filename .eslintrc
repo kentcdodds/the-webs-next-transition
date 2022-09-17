@@ -1,9 +1,12 @@
 {
-  "root": true,
-  "extends": ["eslint:recommended", "prettier"],
-  "env": {
-    "node": true,
-    "commonjs": true,
-    "es2022": true
-  }
+	"root": true,
+	"extends": ["eslint:recommended", "prettier"],
+	"env": {
+		"node": true,
+		"commonjs": true,
+		"es2022": true
+	},
+	"parserOptions": {
+		"sourceType": "module"
+	}
 }
