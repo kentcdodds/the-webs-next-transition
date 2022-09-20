@@ -8,10 +8,11 @@
   "main": "index.js",
   "scripts": {
     "lint": "node ./scripts/run-in-all.js \"npm run --if-present lint\"",
+    "typecheck": "tsc -b .",
     "build": "node ./scripts/build",
     "dev": "node dev",
     "diff": "node diff",
-    "setup": "npm install && node ./scripts/setup && run-p lint build"
+    "setup": "npm install && node ./scripts/setup && run-p lint build typecheck"
   },
   "repository": {
     "type": "git",
