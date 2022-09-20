@@ -219,7 +219,6 @@ app.post('/api/todos', async (req, res) => {
 })
 
 app.put('/api/todos/:id', async (req, res) => {
-	console.log(req.body)
 	const todo = await db.updateTodo(req.params.id, {
 		title: req.body.title,
 		complete: req.body.complete,

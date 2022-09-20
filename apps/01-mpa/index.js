@@ -256,11 +256,9 @@ async function renderApp(req, res) {
 }
 
 app.get('/todos', renderApp)
-app.get('/todos/active', renderApp)
-app.get('/todos/complete', renderApp)
+app.get('/todos/:filter', renderApp)
 app.post('/todos', handleFormPost)
-app.post('/todos/active', handleFormPost)
-app.post('/todos/complete', handleFormPost)
+app.post('/todos/:filter', handleFormPost)
 app.get('*', (req, res) => res.redirect('/todos'))
 
 const server = app.listen(process.env.PORT || 3000, () => {

@@ -1,10 +1,6 @@
 import * as React from "react";
 import type { Todo } from "@prisma/client";
-import type {
-  ActionFunction,
-  LinksFunction,
-  LoaderFunction,
-} from "@remix-run/node";
+import type { ActionArgs, LinksFunction, LoaderArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
   useCatch,
@@ -24,23 +20,19 @@ import cuid from "cuid";
 type TodoItem = Pick<Todo, "id" | "complete" | "title" | "createdAt">;
 type Filter = "all" | "active" | "complete";
 
-type LoaderData = {
-  todos: Array<TodoItem>;
-};
-
 export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: todosStylesheet }];
 };
 
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   const userId = await requireUserId(request);
-  return json<LoaderData>({
+  return json({
     todos: await prisma.todo.findMany({
       where: { userId },
       select: { id: true, complete: true, title: true, createdAt: true },
     }),
   });
-};
+}
 
 function validateNewTodoTitle(title: string) {
   return title ? null : "Todo title required";
@@ -69,7 +61,7 @@ type UpdateTodoActionData = {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request }: ActionArgs) {
   // await sleep(Math.random() * 1000 + 500);
   const formData = await request.formData();
   const userId = await requireUserId(request);
@@ -176,7 +168,7 @@ export const action: ActionFunction = async ({ request }) => {
       throw json({ message: `Unknown intent: ${intent}` }, { status: 400 });
     }
   }
-};
+}
 
 const cn = (...cns: Array<string | false>) => cns.filter(Boolean).join(" ");
 
@@ -188,10 +180,10 @@ function canBeOptimistic(fetcher: { state: string; data: any }) {
 }
 
 export default function TodosRoute() {
-  const todos = useLoaderData().todos.map((t: any) => ({
+  const todos = useLoaderData<typeof loader>().todos.map((t: any) => ({
     ...t,
     createdAt: new Date(t.createdAt),
-  })) as LoaderData["todos"];
+  }));
   const clearFetcher = useFetcher();
   const toggleAllFetcher = useFetcher();
   const location = useLocation();
@@ -437,11 +429,9 @@ export default function TodosRoute() {
 }
 
 function CreateInput({ id, hidden }: { id: string; hidden?: boolean }) {
-  const createFetcher = useFetcher();
+  const createFetcher = useFetcher<CreateTodoActionData>();
 
-  const createFetcherData = createFetcher.data as
-    | CreateTodoActionData
-    | undefined;
+  const createFetcherData = createFetcher.data;
 
   const createInputRef = React.useRef<HTMLInputElement>(null);
 

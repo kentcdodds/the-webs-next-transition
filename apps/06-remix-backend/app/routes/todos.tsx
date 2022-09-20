@@ -1,82 +1,70 @@
 import * as React from 'react'
-import {
-	useLocation,
-	Link,
-	useLoaderData,
-	useFetcher,
-	ActionFunctionArgs,
-} from 'react-router-dom'
+import { useLocation, Link, useLoaderData, useFetcher } from '@remix-run/react'
+import { ActionArgs, json, LinksFunction } from '@remix-run/node'
 import invariant from 'tiny-invariant'
+import * as db from '../db'
 import { CompleteIcon, IncompleteIcon } from '../icons'
+import todosStylesheet from './todos.css'
 
 const cn = (...cns: Array<string | false>) => cns.filter(Boolean).join(' ')
 
 type Filter = 'all' | 'active' | 'complete'
 type Todo = { id: string; title: string; complete: boolean }
 
-export async function loader() {
-	return fetch('http://localhost:3000/api/todos')
+export const links: LinksFunction = () => {
+	return [{ rel: 'stylesheet', href: todosStylesheet }]
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function loader() {
+	const todos = await db.getTodos()
+	return json({ todos })
+}
+
+export async function action({ request }: ActionArgs) {
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 	switch (intent) {
 		case 'createTodo': {
 			const title = formData.get('title')
 			invariant(typeof title === 'string', 'title must be a string')
-			if (title.length === 0) return
-			return fetch(`http://localhost:3000/api/todos`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ title }),
-			})
+			await db.createTodo({ title })
+			return new Response(null)
 		}
 		case 'toggleAllTodos': {
 			const complete = formData.get('complete')
-			return fetch(`http://localhost:3000/api/todos`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ complete: complete === 'true' }),
-			})
+			await db.updateAll({ complete: complete === 'true' })
+			return new Response(null)
 		}
 		case 'deleteCompletedTodos': {
-			return fetch(`http://localhost:3000/api/todos`, {
-				method: 'DELETE',
-				headers: { 'Content-Type': 'application/json' },
-			})
+			await db.deleteComplete()
+			return new Response(null)
 		}
+	}
+
+	const todoId = formData.get('todoId')
+	invariant(typeof todoId === 'string', 'todoId must be a string')
+
+	switch (intent) {
 		case 'toggleTodo': {
-			const todoId = formData.get('todoId')
-			invariant(typeof todoId === 'string', 'todoId must be a string')
-			const complete = formData.get('complete') === 'true'
-			return fetch(`http://localhost:3000/api/todos/${todoId}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ complete }),
+			const complete = formData.get('complete')
+			await db.updateTodo(todoId, {
+				complete: complete === 'true',
 			})
+			return new Response(null)
 		}
 		case 'updateTodo': {
-			const todoId = formData.get('todoId')
-			invariant(typeof todoId === 'string', 'todoId must be a string')
 			const title = formData.get('title')
 			invariant(typeof title === 'string', 'title must be a string')
-			return fetch(`http://localhost:3000/api/todos/${todoId}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ title }),
-			})
+			await db.updateTodo(todoId, { title })
+			return new Response(null)
 		}
 		case 'deleteTodo': {
-			const todoId = formData.get('todoId')
-			invariant(typeof todoId === 'string', 'todoId must be a string')
-			return fetch(`http://localhost:3000/api/todos/${todoId}`, {
-				method: 'DELETE',
-			})
+			await db.deleteTodo(todoId)
+			return new Response(null)
 		}
 		default: {
 			console.warn('Unhandled intent', intent)
-			break
+			return new Response('Unhandled intent', { status: 400 })
 		}
 	}
 }
@@ -285,16 +273,4 @@ function ListItem({ todo, filter }: { todo: Todo; filter: Filter }) {
 			</div>
 		</li>
 	)
-}
-
-export function ErrorBoundary({ error }: { error: any }) {
-	if (error.status === 400) {
-		return <div>You did something wrong: {error.data.message}</div>
-	}
-
-	if (error.status === 404) {
-		return <div>Not found</div>
-	}
-
-	return <div>An unexpected error occurred: {error.message}</div>
 }

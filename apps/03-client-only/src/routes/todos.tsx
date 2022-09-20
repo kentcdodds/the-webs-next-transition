@@ -220,8 +220,17 @@ function ListItem({
 					name="title"
 					className="edit-input"
 					defaultValue={todo.title}
+					onKeyDown={e => {
+						e.key === 'Enter' && e.currentTarget.blur()
+					}}
 					onBlur={e => {
-						if (todo.title !== e.currentTarget.value) {
+						const newTitle = e.currentTarget.value
+						if (todo.title !== newTitle) {
+							fetch(`http://localhost:3000/api/todos/${todo.id}`, {
+								method: 'PUT',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({ title: newTitle }),
+							})
 						}
 					}}
 				/>

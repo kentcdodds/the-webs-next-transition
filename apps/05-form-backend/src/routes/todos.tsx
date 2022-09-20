@@ -6,7 +6,6 @@ import {
 	useFetcher,
 	ActionFunctionArgs,
 } from 'react-router-dom'
-import invariant from 'tiny-invariant'
 import { CompleteIcon, IncompleteIcon } from '../icons'
 
 const cn = (...cns: Array<string | false>) => cns.filter(Boolean).join(' ')
@@ -20,65 +19,13 @@ export async function loader() {
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
-	const intent = formData.get('intent')
-	switch (intent) {
-		case 'createTodo': {
-			const title = formData.get('title')
-			invariant(typeof title === 'string', 'title must be a string')
-			if (title.length === 0) return
-			return fetch(`http://localhost:3000/api/todos`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ title }),
-			})
-		}
-		case 'toggleAllTodos': {
-			const complete = formData.get('complete')
-			return fetch(`http://localhost:3000/api/todos`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ complete: complete === 'true' }),
-			})
-		}
-		case 'deleteCompletedTodos': {
-			return fetch(`http://localhost:3000/api/todos`, {
-				method: 'DELETE',
-				headers: { 'Content-Type': 'application/json' },
-			})
-		}
-		case 'toggleTodo': {
-			const todoId = formData.get('todoId')
-			invariant(typeof todoId === 'string', 'todoId must be a string')
-			const complete = formData.get('complete') === 'true'
-			return fetch(`http://localhost:3000/api/todos/${todoId}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ complete }),
-			})
-		}
-		case 'updateTodo': {
-			const todoId = formData.get('todoId')
-			invariant(typeof todoId === 'string', 'todoId must be a string')
-			const title = formData.get('title')
-			invariant(typeof title === 'string', 'title must be a string')
-			return fetch(`http://localhost:3000/api/todos/${todoId}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ title }),
-			})
-		}
-		case 'deleteTodo': {
-			const todoId = formData.get('todoId')
-			invariant(typeof todoId === 'string', 'todoId must be a string')
-			return fetch(`http://localhost:3000/api/todos/${todoId}`, {
-				method: 'DELETE',
-			})
-		}
-		default: {
-			console.warn('Unhandled intent', intent)
-			break
-		}
-	}
+	return fetch('http://localhost:3000/api/todos', {
+		method: request.method,
+		headers: request.headers,
+		// @ts-expect-error
+		body: new URLSearchParams(formData.entries()),
+		signal: request.signal,
+	})
 }
 
 export default function TodosRoute() {
@@ -285,16 +232,4 @@ function ListItem({ todo, filter }: { todo: Todo; filter: Filter }) {
 			</div>
 		</li>
 	)
-}
-
-export function ErrorBoundary({ error }: { error: any }) {
-	if (error.status === 400) {
-		return <div>You did something wrong: {error.data.message}</div>
-	}
-
-	if (error.status === 404) {
-		return <div>Not found</div>
-	}
-
-	return <div>An unexpected error occurred: {error.message}</div>
 }

@@ -1,6 +1,11 @@
 {
-	"name": "04-browser-emulation",
+	"name": "06-remix-backend",
 	"dependencies": {
+		"@remix-run/dev": "^1.7.1",
+		"@remix-run/node": "^1.7.1",
+		"@remix-run/react": "^1.7.1",
+		"@remix-run/serve": "^1.7.1",
+		"@remix-run/server-runtime": "^1.7.1",
 		"@types/node": "^16.11.59",
 		"@types/react": "^18.0.20",
 		"@types/react-dom": "^18.0.6",
@@ -9,17 +14,14 @@
 		"nodemon": "^2.0.20",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"react-router-dom": "^6.4.0",
 		"react-scripts": "5.0.1",
 		"tiny-invariant": "^1.2.0",
 		"typescript": "^4.8.3"
 	},
 	"scripts": {
-		"start": "react-scripts start",
-		"dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
-		"dev:server": "nodemon server.mjs",
-		"dev:client": "react-scripts start",
-		"build": "react-scripts build"
+		"start": "remix-serve build",
+		"dev": "remix dev",
+		"build": "remix build"
 	},
 	"eslintConfig": {
 		"extends": [

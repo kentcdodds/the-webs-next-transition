@@ -14,9 +14,9 @@ export default function App() {
 	return (
 		<BrowserRouter>
 			<Routes>
-				<Route path="/todos" element={<TodosRoute />} />
-				<Route path="/todos/active" element={<TodosRoute />} />
-				<Route path="/todos/complete" element={<TodosRoute />} />
+				<Route path="/todos" element={<TodosRoute />}>
+					<Route path=":filter" element={<></>} />
+				</Route>
 				<Route path="*" element={<Navigate to="/todos" />} />
 			</Routes>
 		</BrowserRouter>

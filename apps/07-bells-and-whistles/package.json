@@ -62,5 +62,5 @@
   "prisma": {
     "seed": "ts-node --require tsconfig-paths/register prisma/seed.ts"
   },
-  "name": "05-final-form"
+  "name": "07-bells-and-whistles"
 }

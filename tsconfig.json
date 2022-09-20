@@ -15,7 +15,13 @@
       "path": "./apps/04-browser-emulation"
     },
     {
-      "path": "./apps/05-final-form"
+      "path": "./apps/05-form-backend"
+    },
+    {
+      "path": "./apps/06-remix-backend"
+    },
+    {
+      "path": "./apps/07-bells-and-whistles"
     }
   ]
 }
