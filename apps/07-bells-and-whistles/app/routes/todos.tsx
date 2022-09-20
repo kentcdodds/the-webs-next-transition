@@ -456,6 +456,7 @@ function CreateInput({ id, hidden }: { id: string; hidden?: boolean }) {
       <input
         className="new-todo"
         placeholder="What needs to be done?"
+        title="New todo title"
         name="title"
         autoFocus
         ref={createInputRef}

@@ -190,6 +190,7 @@ export default function TodosRoute() {
               <input
                 className="new-todo"
                 placeholder="What needs to be done?"
+                title="New todo title"
                 name="title"
                 autoFocus
                 aria-invalid={createFetcherData?.error ? true : undefined}

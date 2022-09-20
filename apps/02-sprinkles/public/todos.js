@@ -24,6 +24,19 @@ function updateTodoCount({ completeChange = 0, incompleteCount } = {}) {
 	else clearTodos.show()
 }
 
+function handleCreateOrDestroyTodo() {
+	const totalCount = getTotalTodosCount()
+	if (totalCount === 0) {
+		$('.todo-list').attr('hidden', true)
+		$('.footer').attr('hidden', true)
+		$('.main').addClass('no-todos')
+	} else {
+		$('.todo-list').removeAttr('hidden')
+		$('.footer').removeAttr('hidden')
+		$('.main').removeClass('no-todos')
+	}
+}
+
 function updateLiCompletedState(li, completed) {
 	const liEl = $(li)
 	if (completed) liEl.addClass('completed')
@@ -78,6 +91,7 @@ $(document).on('submit', async event => {
 			updateTodoCount({ completeChange: updatedTodo.complete ? -1 : 1 })
 			const li = form.closest('li')
 			updateLiCompletedState(li, updatedTodo.complete)
+			handleCreateOrDestroyTodo()
 			break
 		}
 		case 'updateTodo': {
@@ -99,9 +113,22 @@ $(document).on('submit', async event => {
 			li.remove()
 
 			if (!wasComplete) updateTodoCount()
+			handleCreateOrDestroyTodo()
 			break
 		}
 		case 'createTodo': {
+			const { title: titleInput } = form.elements
+			const response = await fetch('/api/todos', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ title: titleInput.value }),
+			})
+			const { todo: createdTodo } = await response.json()
+			const li = $.parseHTML(renderListItem(createdTodo))
+			$('.todo-list').append(li)
+			updateTodoCount({ completeChange: 1 })
+			handleCreateOrDestroyTodo()
+			form.reset()
 			break
 		}
 		case 'toggleAllTodos': {
@@ -132,6 +159,7 @@ $(document).on('submit', async event => {
 			await fetch(`/api/todos`, { method: 'DELETE' })
 			updateTodoCount()
 			$('.todo-list li.completed').remove()
+			handleCreateOrDestroyTodo()
 
 			break
 		}
@@ -180,5 +208,39 @@ export function completeIcon() {
 			></circle>
 			<path fill="#5dc2af" d="M72 25L42 71 27 56l-4 4 20 20 34-52z"></path>
 		</svg>
+	`
+}
+
+function renderListItem({ id, title, complete }) {
+	return html`
+		<li class="${complete ? 'completed' : ''}">
+			<div class="view">
+				<form data-form="toggleTodo">
+					<input type="hidden" name="todoId" value="${id}" />
+					<input type="hidden" name="complete" value="${!complete}" />
+					<button
+						type="submit"
+						name="submit"
+						class="toggle"
+						title="Mark as incomplete"
+					>
+						${complete ? completeIcon() : incompleteIcon()}
+					</button>
+				</form>
+				<form class="update-form" data-form="updateTodo">
+					<input type="hidden" name="todoId" value="${id}" />
+					<input name="title" class="edit-input" value="${title}" />
+				</form>
+				<form data-form="deleteTodo">
+					<input type="hidden" name="todoId" value="${id}" />
+					<button
+						class="destroy"
+						title="Delete todo"
+						type="submit"
+						name="submit"
+					></button>
+				</form>
+			</div>
+		</li>
 	`
 }

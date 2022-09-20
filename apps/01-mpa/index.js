@@ -69,7 +69,7 @@ function renderListItem({ id, title, complete }) {
 						name="intent"
 						value="toggleTodo"
 						class="toggle"
-						title="Mark as incomplete"
+						title="${complete ? 'Mark as incomplete' : 'Mark as complete'}"
 					>
 						${complete ? completeIcon() : incompleteIcon()}
 					</button>
@@ -166,6 +166,7 @@ async function renderApp(req, res) {
 								<input
 									class="new-todo"
 									placeholder="What needs to be done?"
+									title="New todo title"
 									name="title"
 									autofocus
 								/>
@@ -186,7 +187,7 @@ async function renderApp(req, res) {
 									❯
 								</button>
 							</form>
-							<ul class="todo-list">
+							<ul class="todo-list" ${todos.length ? '' : 'hidden'}>
 								${todos
 									.filter(todo => {
 										if (filter === 'active') return !todo.complete
@@ -197,7 +198,7 @@ async function renderApp(req, res) {
 									.join('\n')}
 							</ul>
 						</section>
-						<footer class="footer">
+						<footer class="footer" ${todos.length ? '' : 'hidden'}>
 							<span class="todo-count">
 								<strong>${remainingActive.length}</strong>
 								<span>
