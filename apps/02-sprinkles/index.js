@@ -110,7 +110,7 @@ async function renderApp(req, res) {
 		<html lang="en">
 			<head>
 				<meta charset="utf-8" />
-				<title>MPA TodoMVC</title>
+				<title>JS Sprinkles TodoMVC</title>
 				<meta name="viewport" content="width=device-width,initial-scale=1" />
 				<link rel="stylesheet" href="/todos.css" />
 			</head>
