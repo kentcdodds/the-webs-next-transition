@@ -83,6 +83,46 @@ function renderListItem({ id, title, complete }) {
 	`
 }
 
+async function handleFormPost(req, res) {
+	const { todoId, intent, complete, title } = req.body
+	switch (intent) {
+		case 'createTodo': {
+			await db.createTodo({ title })
+			break
+		}
+		case 'toggleAllTodos': {
+			await db.updateAll({ complete: complete === 'true' })
+			break
+		}
+		case 'deleteCompletedTodos': {
+			await db.deleteComplete()
+			break
+		}
+		case 'toggleTodo': {
+			await db.updateTodo(todoId, {
+				complete: complete === 'true',
+			})
+			break
+		}
+		case 'updateTodo': {
+			await db.updateTodo(todoId, {
+				title,
+			})
+			break
+		}
+		case 'deleteTodo': {
+			await db.deleteTodo(todoId)
+			break
+		}
+		default: {
+			console.warn('Unhandled intent', intent)
+			break
+		}
+	}
+
+	res.redirect(req.url)
+}
+
 async function renderApp(req, res) {
 	const todos = await db.getTodos()
 	const hasCompleteTodos = todos.some(todo => todo.complete === true)
@@ -101,7 +141,7 @@ async function renderApp(req, res) {
 		<html lang="en">
 			<head>
 				<meta charset="utf-8" />
-				<title>JS Sprinkles TodoMVC</title>
+				<title>PEMPA TodoMVC</title>
 				<meta name="viewport" content="width=device-width,initial-scale=1" />
 				<link rel="stylesheet" href="/todos.css" />
 			</head>
@@ -181,8 +221,9 @@ async function renderApp(req, res) {
 }
 
 app.get('/todos', renderApp)
-app.get('/todos/active', renderApp)
-app.get('/todos/complete', renderApp)
+app.get('/todos/:filter', renderApp)
+app.post('/todos', handleFormPost)
+app.post('/todos/:filter', handleFormPost)
 
 app.put('/api/todos', async (req, res) => {
 	const todos = await db.updateAll({

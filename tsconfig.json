@@ -1,27 +1,27 @@
 {
-  "files": [],
-  "exclude": ["node_modules"],
-  "references": [
-    {
-      "path": "./apps/01-mpa"
-    },
-    {
-      "path": "./apps/02-sprinkles"
-    },
-    {
-      "path": "./apps/03-client-only"
-    },
-    {
-      "path": "./apps/04-browser-emulation"
-    },
-    {
-      "path": "./apps/05-form-backend"
-    },
-    {
-      "path": "./apps/06-pespa"
-    },
-    {
-      "path": "./apps/07-bells-and-whistles"
-    }
-  ]
+	"files": [],
+	"exclude": ["node_modules"],
+	"references": [
+		{
+			"path": "./apps/01-mpa"
+		},
+		{
+			"path": "./apps/02-pempa"
+		},
+		{
+			"path": "./apps/03-spa"
+		},
+		{
+			"path": "./apps/04-spa-react-router"
+		},
+		{
+			"path": "./apps/05-spa-form-backend"
+		},
+		{
+			"path": "./apps/06-pespa"
+		},
+		{
+			"path": "./apps/07-bells-and-whistles"
+		}
+	]
 }

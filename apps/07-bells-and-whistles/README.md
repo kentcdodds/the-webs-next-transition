@@ -6,7 +6,8 @@
 [![Code of Conduct][coc-badge]][coc]
 <!-- prettier-ignore-end -->
 
-This is just an example implementation of the TodoMVC app built in Remix. I'm using it to demonstrate progressive enhancement in a live coding talk.
+This is just an example implementation of the TodoMVC app built in Remix. I'm
+using it to demonstrate progressive enhancement in a live coding talk.
 
 <!-- prettier-ignore-start -->
 [build-badge]: https://img.shields.io/github/workflow/status/kentcdodds/remix-todomvc/%F0%9F%92%AA%20Validate/main?logo=github&style=flat-square
