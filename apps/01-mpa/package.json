@@ -5,8 +5,8 @@
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
-		"start": "node .",
-		"dev": "nodemon ."
+		"start": "node server.js",
+		"dev": "nodemon server.js"
 	},
 	"keywords": [],
 	"author": "Kent C. Dodds <me@kentcdodds.com> (https://kentcdodds.com/)",
