@@ -1,6 +1,8 @@
 let { 2: appDir } = process.argv
-if (appDir) {
-	require('./advance')
+async function go() {
+	if (appDir) {
+		await require('./advance')(appDir)
+	}
+	await require('./dev')('00')
 }
-process.argv[2] = '00'
-require('./dev')
+go()

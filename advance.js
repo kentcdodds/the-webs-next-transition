@@ -2,11 +2,10 @@ const fsExtra = require('fs-extra')
 const path = require('path')
 const { resolvePath } = require('./scripts/utils')
 
-let { 2: appDir } = process.argv
-
-async function go() {
+async function go(appDir = process.argv[2]) {
 	const appDirPath = resolvePath(appDir)
 	const playgroundDirPath = path.resolve('./apps/00-playground')
+	await fsExtra.remove(playgroundDirPath)
 	await fsExtra.copy(path.resolve(appDirPath), playgroundDirPath, {
 		filter(src, dest) {
 			return !dest.includes('node_modules')
@@ -16,4 +15,8 @@ async function go() {
 	console.log(`Playground is now at ${appDirPath}`)
 }
 
-go()
+if (require.main === module) {
+	go()
+} else {
+	module.exports = go
+}
