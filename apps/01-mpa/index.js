@@ -7,17 +7,8 @@ const app = express()
 app.use(express.static('public'))
 app.use(bodyParser.urlencoded({ extended: false }))
 
-// String.raw is a handy trick that works together with the VSCode extension called "inline".
-// It allows me to "tag" a template literal as HTML without actually changing its contents
-// and the extension will make VSCode treat it like an HTML block with regard to syntax
-// highlighting and formatting. Pretty awesome!
-const html = String.raw
-
-// makes it easier to conditionally apply classnames
-const cn = (...cns) => cns.filter(Boolean).join(' ')
-
 export function incompleteIcon() {
-	return html`
+	return /* html */ `
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="40"
@@ -37,7 +28,7 @@ export function incompleteIcon() {
 }
 
 export function completeIcon() {
-	return html`
+	return /* html */ `
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="40"
@@ -58,7 +49,7 @@ export function completeIcon() {
 }
 
 function renderListItem({ id, title, complete }) {
-	return html`
+	return /* html */ `
 		<li class="${complete ? 'completed' : ''}">
 			<div class="view">
 				<form method="post">
@@ -147,7 +138,7 @@ async function renderApp(req, res) {
 	const remainingActive = todos.filter(t => !t.complete)
 	const allComplete = remainingActive.length === 0
 
-	res.send(html`
+	res.send(/* html */ `
 		<!DOCTYPE html>
 		<html lang="en">
 			<head>
@@ -172,7 +163,7 @@ async function renderApp(req, res) {
 								/>
 							</form>
 						</header>
-						<section class="${cn('main', !todos.length && 'no-todos')}">
+						<section class="main ${todos.length ? '' : 'no-todos'}">
 							<form method="post">
 								<input type="hidden" name="complete" value="${!allComplete}" />
 								<button
@@ -180,9 +171,7 @@ async function renderApp(req, res) {
 									type="submit"
 									name="intent"
 									value="toggleAllTodos"
-									title="${allComplete
-										? 'Mark all as incomplete'
-										: 'Mark all as complete'}"
+									title="${allComplete ? 'Mark all as incomplete' : 'Mark all as complete'}"
 								>
 									❯
 								</button>
@@ -208,7 +197,7 @@ async function renderApp(req, res) {
 							<ul class="filters">
 								<li>
 									<a
-										class="${cn(filter === 'all' && 'selected')}"
+										class="${filter === 'all' ? 'selected' : ''}"
 										href="/todos"
 									>
 										All
@@ -216,7 +205,7 @@ async function renderApp(req, res) {
 								</li>
 								<li>
 									<a
-										class="${cn(filter === 'active' && 'selected')}"
+										class="${filter === 'active' ? 'selected' : ''}"
 										href="/todos/active"
 									>
 										Active
@@ -224,15 +213,16 @@ async function renderApp(req, res) {
 								</li>
 								<li>
 									<a
-										class="${cn(filter === 'complete' && 'selected')}"
+										class="${filter === 'complete' ? 'selected' : ''}"
 										href="/todos/complete"
 									>
 										Completed
 									</a>
 								</li>
 							</ul>
-							${hasCompleteTodos
-								? html`
+							${
+								hasCompleteTodos
+									? /* html */ `
 										<form method="post">
 											<input
 												type="hidden"
@@ -242,7 +232,8 @@ async function renderApp(req, res) {
 											<button class="clear-completed">Clear completed</button>
 										</form>
 								  `
-								: ''}
+									: ''
+							}
 						</footer>
 					</div>
 				</section>

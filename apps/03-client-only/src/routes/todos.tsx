@@ -2,8 +2,6 @@ import * as React from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import { CompleteIcon, IncompleteIcon } from '../icons'
 
-const cn = (...cns: Array<string | false>) => cns.filter(Boolean).join(' ')
-
 type Filter = 'all' | 'active' | 'complete'
 type Todo = { id: string; title: string; complete: boolean }
 
@@ -72,7 +70,7 @@ export default function TodosRoute() {
 							/>
 						</form>
 					</header>
-					<section className={cn('main', !todos.length && 'no-todos')}>
+					<section className={`main ${todos.length ? '' : 'no-todos'}`}>
 						<button
 							className={`toggle-all ${allComplete ? 'checked' : ''}`}
 							title={
@@ -126,7 +124,7 @@ export default function TodosRoute() {
 							<li>
 								<Link
 									to="/todos"
-									className={cn(filter === 'all' && 'selected')}
+									className={filter === 'all' ? 'selected' : ''}
 								>
 									All
 								</Link>
@@ -134,7 +132,7 @@ export default function TodosRoute() {
 							<li>
 								<Link
 									to="/todos/active"
-									className={cn(filter === 'active' && 'selected')}
+									className={filter === 'active' ? 'selected' : ''}
 								>
 									Active
 								</Link>
@@ -142,7 +140,7 @@ export default function TodosRoute() {
 							<li>
 								<Link
 									to="/todos/complete"
-									className={cn(filter === 'complete' && 'selected')}
+									className={filter === 'complete' ? 'selected' : ''}
 								>
 									Completed
 								</Link>

@@ -170,8 +170,6 @@ export async function action({ request }: ActionArgs) {
   }
 }
 
-const cn = (...cns: Array<string | false>) => cns.filter(Boolean).join(" ");
-
 function canBeOptimistic(fetcher: { state: string; data: any }) {
   return (
     fetcher.state === "submitting" ||
@@ -335,7 +333,7 @@ export default function TodosRoute() {
               />
             ))}
           </header>
-          <section className={cn("main", !optimisticTodosRemain && "no-todos")}>
+          <section className={`main ${todos.length ? "" : "no-todos"}`}>
             <toggleAllFetcher.Form method="post">
               <input
                 type="hidden"
@@ -381,7 +379,7 @@ export default function TodosRoute() {
               <li>
                 <Link
                   to="."
-                  className={cn(filter === "all" && "selected")}
+                  className={filter === "all" ? "selected" : ""}
                   prefetch="render"
                 >
                   All
@@ -390,7 +388,7 @@ export default function TodosRoute() {
               <li>
                 <Link
                   to="active"
-                  className={cn(filter === "active" && "selected")}
+                  className={filter === "active" ? "selected" : ""}
                   prefetch="render"
                 >
                   Active
@@ -399,7 +397,7 @@ export default function TodosRoute() {
               <li>
                 <Link
                   to="complete"
-                  className={cn(filter === "complete" && "selected")}
+                  className={filter === "complete" ? "selected" : ""}
                   prefetch="render"
                 >
                   Completed

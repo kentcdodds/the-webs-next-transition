@@ -6,8 +6,6 @@ import * as db from '../db'
 import { CompleteIcon, IncompleteIcon } from '../icons'
 import todosStylesheet from './todos.css'
 
-const cn = (...cns: Array<string | false>) => cns.filter(Boolean).join(' ')
-
 type Filter = 'all' | 'active' | 'complete'
 type Todo = { id: string; title: string; complete: boolean }
 
@@ -122,7 +120,7 @@ export default function TodosRoute() {
 							) : null}
 						</createFetcher.Form>
 					</header>
-					<section className={cn('main', !data.todos.length && 'no-todos')}>
+					<section className={`main ${data.todos.length ? '' : 'no-todos'}`}>
 						<toggleAllFetcher.Form method="post">
 							<input
 								type="hidden"
@@ -159,14 +157,14 @@ export default function TodosRoute() {
 						</span>
 						<ul className="filters">
 							<li>
-								<Link to="." className={cn(filter === 'all' && 'selected')}>
+								<Link to="." className={filter === 'all' ? 'selected' : ''}>
 									All
 								</Link>
 							</li>{' '}
 							<li>
 								<Link
 									to="active"
-									className={cn(filter === 'active' && 'selected')}
+									className={filter === 'active' ? 'selected' : ''}
 								>
 									Active
 								</Link>
@@ -174,7 +172,7 @@ export default function TodosRoute() {
 							<li>
 								<Link
 									to="complete"
-									className={cn(filter === 'complete' && 'selected')}
+									className={filter === 'complete' ? 'selected' : ''}
 								>
 									Completed
 								</Link>

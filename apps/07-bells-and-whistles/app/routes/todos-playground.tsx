@@ -144,8 +144,6 @@ export async function action({ request }: ActionArgs) {
   }
 }
 
-const cn = (...cns: Array<string | false>) => cns.filter(Boolean).join(" ");
-
 export default function TodosRoute() {
   const data = useLoaderData<typeof loader>();
   const createFetcher = useFetcher();
@@ -203,7 +201,7 @@ export default function TodosRoute() {
               ) : null}
             </createFetcher.Form>
           </header>
-          <section className={cn("main", !data.todos.length && "no-todos")}>
+          <section className={`main ${data.todos.length ? "" : "no-todos"}`}>
             <toggleAllFetcher.Form method="post">
               <input
                 type="hidden"
@@ -242,7 +240,7 @@ export default function TodosRoute() {
               <li>
                 <Link
                   to="."
-                  className={cn(filter === "all" && "selected")}
+                  className={filter === "all" ? "selected" : ""}
                   prefetch="render"
                 >
                   All
@@ -251,7 +249,7 @@ export default function TodosRoute() {
               <li>
                 <Link
                   to="active"
-                  className={cn(filter === "active" && "selected")}
+                  className={filter === "active" ? "selected" : ""}
                   prefetch="render"
                 >
                   Active
@@ -260,7 +258,7 @@ export default function TodosRoute() {
               <li>
                 <Link
                   to="complete"
-                  className={cn(filter === "complete" && "selected")}
+                  className={filter === "complete" ? "selected" : ""}
                   prefetch="render"
                 >
                   Completed

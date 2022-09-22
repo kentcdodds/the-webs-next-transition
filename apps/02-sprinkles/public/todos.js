@@ -1,9 +1,3 @@
-// String.raw is a handy trick that works together with the VSCode extension called "inline".
-// It allows me to "tag" a template literal as HTML without actually changing its contents
-// and the extension will make VSCode treat it like an HTML block with regard to syntax
-// highlighting and formatting. Pretty awesome!
-const html = String.raw
-
 const getTotalTodosCount = () => $('.todo-list li').length
 const getIncompleteTodosCount = () =>
 	Number($('.todo-count').find('strong').text())
@@ -171,7 +165,7 @@ $(document).on('submit', async event => {
 })
 
 export function incompleteIcon() {
-	return html`
+	return /* html */ `
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="40"
@@ -191,7 +185,7 @@ export function incompleteIcon() {
 }
 
 export function completeIcon() {
-	return html`
+	return /* html */ `
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="40"
@@ -212,7 +206,7 @@ export function completeIcon() {
 }
 
 function renderListItem({ id, title, complete }) {
-	return html`
+	return /* html */ `
 		<li class="${complete ? 'completed' : ''}">
 			<div class="view">
 				<form data-form="toggleTodo">
