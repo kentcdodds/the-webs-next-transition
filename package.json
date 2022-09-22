@@ -8,6 +8,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "node ./scripts/run-in-all.js \"npm run --if-present lint\"",
+    "test:e2e": "node ./scripts/test-all.js",
     "typecheck": "tsc -b .",
     "build": "node ./scripts/build",
     "dev": "node dev",

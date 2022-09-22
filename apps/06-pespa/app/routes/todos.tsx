@@ -112,6 +112,7 @@ export default function TodosRoute() {
 								autoFocus
 								aria-invalid={createFetcher.data?.error ? true : undefined}
 								aria-describedby="new-todo-error"
+								disabled={Boolean(createFetcher.submission)}
 							/>
 							{createFetcher.data?.error ? (
 								<div className="error" id="new-todo-error">
@@ -143,7 +144,15 @@ export default function TodosRoute() {
 						</toggleAllFetcher.Form>
 						<ul className="todo-list" hidden={!data.todos.length}>
 							{data.todos.map(todo => (
-								<ListItem todo={todo} key={todo.id} filter={filter} />
+								<ListItem
+									todo={todo}
+									key={todo.id}
+									filter={filter}
+									disabled={Boolean(
+										toggleAllFetcher.submission ||
+											(clearFetcher.submission && todo.complete),
+									)}
+								/>
 							))}
 						</ul>
 					</section>
@@ -200,13 +209,27 @@ export default function TodosRoute() {
 	)
 }
 
-function ListItem({ todo, filter }: { todo: Todo; filter: Filter }) {
+function ListItem({
+	todo,
+	filter,
+	disabled: externallyDisabled,
+}: {
+	todo: Todo
+	filter: Filter
+	disabled: boolean
+}) {
 	const updateFetcher = useFetcher()
 	const toggleFetcher = useFetcher()
 	const deleteFetcher = useFetcher()
 	const updateFormRef = React.useRef<HTMLFormElement>(null)
 
 	const complete = todo.complete
+	const disabled = Boolean(
+		externallyDisabled ||
+			updateFetcher.submission ||
+			toggleFetcher.submission ||
+			deleteFetcher.submission,
+	)
 
 	const shouldRender =
 		filter === 'all' ||
@@ -227,6 +250,7 @@ function ListItem({ todo, filter }: { todo: Todo; filter: Filter }) {
 						value="toggleTodo"
 						className="toggle"
 						title={complete ? 'Mark as incomplete' : 'Mark as complete'}
+						disabled={disabled}
 					>
 						{complete ? <CompleteIcon /> : <IncompleteIcon />}
 					</button>
@@ -249,6 +273,7 @@ function ListItem({ todo, filter }: { todo: Todo; filter: Filter }) {
 						}}
 						aria-invalid={updateFetcher.data?.error ? true : undefined}
 						aria-describedby={`todo-update-error-${todo.id}`}
+						disabled={disabled}
 					/>
 					{updateFetcher.data?.error && updateFetcher.state !== 'submitting' ? (
 						<div
@@ -267,6 +292,7 @@ function ListItem({ todo, filter }: { todo: Todo; filter: Filter }) {
 						type="submit"
 						name="intent"
 						value="deleteTodo"
+						disabled={disabled}
 					/>
 				</deleteFetcher.Form>
 			</div>

@@ -7,17 +7,13 @@ import {
 const test = base.extend<TestingLibraryFixtures>(fixtures)
 
 test('smoke test', async ({ page, screen }) => {
-	// Go to http://localhost:7999/todos
 	await page.goto('http://localhost:7999/todos')
 
-	// Click text=todos
 	await expect(screen.getByRole('heading', { name: 'todos' })).toBeVisible()
 
-	// Click text=❯
 	await screen.getByRole('button', { name: 'Mark all as complete' }).click()
 	await expect(page).toHaveURL('http://localhost:7999/todos')
 
-	// Click text=Clear completed
 	await screen.getByRole('button', { name: 'Clear completed' }).click()
 
 	await expect(page.locator('text=items left')).not.toBeVisible()

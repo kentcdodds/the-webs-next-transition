@@ -18,6 +18,11 @@ function updateTodoCount({ completeChange = 0, incompleteCount } = {}) {
 	else clearTodos.show()
 }
 
+function updatePendingState(li, pending) {
+	const els = $(li).find('input, button')
+	els.attr('disabled', pending)
+}
+
 function handleCreateOrDestroyTodo() {
 	const totalCount = getTotalTodosCount()
 	if (totalCount === 0) {
@@ -79,34 +84,40 @@ $(document).on('submit', async event => {
 	switch (intent?.value) {
 		case 'toggleTodo': {
 			const { todoId: todoIdInput, complete: completeInput } = form.elements
+			const li = form.closest('li')
+			updatePendingState(li, true)
 			const response = await fetch(`/api/todos/${todoIdInput.value}`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ complete: completeInput.value === 'true' }),
 			})
 			const { todo: updatedTodo } = await response.json()
+			updatePendingState(li, false)
 			updateTodoCount({ completeChange: updatedTodo.complete ? -1 : 1 })
-			const li = form.closest('li')
 			updateLiCompletedState(li, updatedTodo.complete)
 			handleCreateOrDestroyTodo()
 			break
 		}
 		case 'updateTodo': {
 			const { todoId: todoIdInput, title: titleInput } = form.elements
+			const li = form.closest('li')
+			updatePendingState(li, true)
 			await fetch(`/api/todos/${todoIdInput.value}`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ title: titleInput.value }),
 			})
+			updatePendingState(li, false)
 			break
 		}
 		case 'deleteTodo': {
 			const { todoId: todoIdInput } = form.elements
+			const li = form.closest('li')
+			updatePendingState(li, true)
 			const wasComplete = Boolean(
 				$(form).parents('.todo-list li.completed').length,
 			)
 			await fetch(`/api/todos/${todoIdInput.value}`, { method: 'DELETE' })
-			const li = form.closest('li')
 			li.remove()
 
 			if (!wasComplete) updateTodoCount()
@@ -115,12 +126,14 @@ $(document).on('submit', async event => {
 		}
 		case 'createTodo': {
 			const { title: titleInput } = form.elements
+			updatePendingState(form, true)
 			const response = await fetch('/api/todos', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ title: titleInput.value }),
 			})
 			const { todo: createdTodo } = await response.json()
+			updatePendingState(form, false)
 			const li = $.parseHTML(renderListItem(createdTodo))
 			$('.todo-list').append(li)
 			updateTodoCount({ completeChange: 1 })
@@ -132,11 +145,14 @@ $(document).on('submit', async event => {
 			const allComplete =
 				$('.todo-list li.completed').length === getTotalTodosCount()
 			const complete = !allComplete
+			const todoList = $('.todo-list')
+			updatePendingState(todoList, true)
 			await fetch(`/api/todos`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ complete }),
 			})
+			updatePendingState(todoList, false)
 			const allLis = $('.todo-list li')
 			if (complete) {
 				allLis.each((i, li) => {
@@ -153,9 +169,12 @@ $(document).on('submit', async event => {
 			break
 		}
 		case 'deleteCompletedTodos': {
+			const completedTodos = $('.todo-list li.completed')
+			updatePendingState(completedTodos, true)
 			await fetch(`/api/todos`, { method: 'DELETE' })
+			updatePendingState(completedTodos, false)
 			updateTodoCount()
-			$('.todo-list li.completed').remove()
+			completedTodos.remove()
 			handleCreateOrDestroyTodo()
 
 			break

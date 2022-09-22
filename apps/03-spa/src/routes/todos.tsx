@@ -47,6 +47,7 @@ export default function TodosRoute() {
 								) as HTMLInputElement
 								const title = titleInput.value.trim()
 								if (title.length === 0) return
+								titleInput.disabled = true
 								fetch(`http://localhost:3000/api/todos`, {
 									method: 'POST',
 									headers: { 'Content-Type': 'application/json' },
@@ -55,10 +56,9 @@ export default function TodosRoute() {
 									.then(res => res.json())
 									.then(data => {
 										setTodos([...todos, data.todo])
+										form.reset()
+										titleInput.disabled = false
 									})
-								requestAnimationFrame(() => {
-									form.reset()
-								})
 							}}
 						>
 							<input
@@ -76,7 +76,9 @@ export default function TodosRoute() {
 							title={
 								allComplete ? 'Mark all as incomplete' : 'Mark all as complete'
 							}
-							onClick={() => {
+							onClick={event => {
+								const toggleAllButton = event.currentTarget
+								toggleAllButton.disabled = true
 								fetch(`http://localhost:3000/api/todos`, {
 									method: 'PUT',
 									headers: { 'Content-Type': 'application/json' },
@@ -84,6 +86,7 @@ export default function TodosRoute() {
 								})
 									.then(res => res.json())
 									.then(data => {
+										toggleAllButton.disabled = false
 										setTodos(data.todos)
 									})
 							}}
@@ -201,7 +204,9 @@ function ListItem({
 				<button
 					className="toggle"
 					title={complete ? 'Mark as incomplete' : 'Mark as complete'}
-					onClick={() => {
+					onClick={event => {
+						const toggleButton = event.currentTarget
+						toggleButton.disabled = true
 						fetch(`http://localhost:3000/api/todos/${todo.id}`, {
 							method: 'PUT',
 							headers: { 'Content-Type': 'application/json' },
@@ -209,6 +214,7 @@ function ListItem({
 						})
 							.then(res => res.json())
 							.then(data => {
+								toggleButton.disabled = false
 								updateTodo(data.todo)
 							})
 					}}
@@ -223,12 +229,16 @@ function ListItem({
 						e.key === 'Enter' && e.currentTarget.blur()
 					}}
 					onBlur={e => {
-						const newTitle = e.currentTarget.value
+						const input = e.currentTarget
+						const newTitle = input.value
 						if (todo.title !== newTitle) {
+							input.disabled = true
 							fetch(`http://localhost:3000/api/todos/${todo.id}`, {
 								method: 'PUT',
 								headers: { 'Content-Type': 'application/json' },
 								body: JSON.stringify({ title: newTitle }),
+							}).then(() => {
+								input.disabled = false
 							})
 						}
 					}}
@@ -236,7 +246,9 @@ function ListItem({
 				<button
 					className="destroy"
 					title="Delete todo"
-					onClick={() => {
+					onClick={event => {
+						const destroyButton = event.currentTarget
+						destroyButton.disabled = true
 						fetch(`http://localhost:3000/api/todos/${todo.id}`, {
 							method: 'DELETE',
 						})
@@ -244,6 +256,8 @@ function ListItem({
 							.then(data => {
 								if (data.success) {
 									removeTodo()
+								} else {
+									destroyButton.disabled = false
 								}
 							})
 					}}
