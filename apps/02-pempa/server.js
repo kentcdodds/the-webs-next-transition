@@ -66,7 +66,8 @@ function renderListItem({ id, title, complete }) {
 						${complete ? completeIcon() : incompleteIcon()}
 					</button>
 				</form>
-				<form class="update-form" method="post">
+				<form method="post" class="update-form">
+					<input type="hidden" name="intent" value="updateTodo" />
 					<input type="hidden" name="todoId" value="${id}" />
 					<input name="title" class="edit-input" value="${title}" />
 				</form>
@@ -152,7 +153,7 @@ async function renderApp(req, res) {
 					<div>
 						<header class="header">
 							<h1>todos</h1>
-							<form class="create-form" method="post">
+							<form method="post" class="create-form">
 								<input type="hidden" name="intent" value="createTodo" />
 								<input
 									class="new-todo"
@@ -164,7 +165,7 @@ async function renderApp(req, res) {
 							</form>
 						</header>
 						<section class="main ${todos.length ? '' : 'no-todos'}">
-							<form method="post" method="post">
+							<form method="post">
 								<input type="hidden" name="complete" value="${!allComplete}" />
 								<button
 									class="toggle-all ${allComplete ? 'checked' : ''}"
