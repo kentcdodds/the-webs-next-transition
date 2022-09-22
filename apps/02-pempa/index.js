@@ -53,29 +53,31 @@ function renderListItem({ id, title, complete }) {
 	return /* html */ `
 		<li class="${complete ? 'completed' : ''}">
 			<div class="view">
-				<form data-form="toggleTodo">
+				<form method="post">
 					<input type="hidden" name="todoId" value="${id}" />
 					<input type="hidden" name="complete" value="${!complete}" />
 					<button
 						type="submit"
-						name="submit"
+						name="intent"
+						value="toggleTodo"
 						class="toggle"
-						title="Mark as incomplete"
+						title="${complete ? 'Mark as incomplete' : 'Mark as complete'}"
 					>
 						${complete ? completeIcon() : incompleteIcon()}
 					</button>
 				</form>
-				<form class="update-form" data-form="updateTodo">
+				<form class="update-form" method="post">
 					<input type="hidden" name="todoId" value="${id}" />
 					<input name="title" class="edit-input" value="${title}" />
 				</form>
-				<form data-form="deleteTodo">
+				<form method="post">
 					<input type="hidden" name="todoId" value="${id}" />
 					<button
 						class="destroy"
 						title="Delete todo"
 						type="submit"
-						name="submit"
+						name="intent"
+						value="deleteTodo"
 					></button>
 				</form>
 			</div>
@@ -150,7 +152,8 @@ async function renderApp(req, res) {
 					<div>
 						<header class="header">
 							<h1>todos</h1>
-							<form class="create-form" data-form="createTodo">
+							<form class="create-form" method="post">
+								<input type="hidden" name="intent" value="createTodo" />
 								<input
 									class="new-todo"
 									placeholder="What needs to be done?"
@@ -161,12 +164,13 @@ async function renderApp(req, res) {
 							</form>
 						</header>
 						<section class="main ${todos.length ? '' : 'no-todos'}">
-							<form data-form="toggleAllTodos">
+							<form method="post" method="post">
 								<input type="hidden" name="complete" value="${!allComplete}" />
 								<button
 									class="toggle-all ${allComplete ? 'checked' : ''}"
 									type="submit"
-									name="submit"
+									name="intent"
+									value="toggleAllTodos"
 									title="${allComplete ? 'Mark all as incomplete' : 'Mark all as complete'}"
 								>
 									❯
@@ -185,21 +189,24 @@ async function renderApp(req, res) {
 							</span>
 							<ul class="filters">
 								<li>
-									<a data-filter="all" href="/todos"> All </a>
+									<a data-filter="all" href="/todos">All</a>
 								</li>
 								<li>
-									<a data-filter="active" href="/todos/active"> Active </a>
+									<a data-filter="active" href="/todos/active">Active</a>
 								</li>
 								<li>
-									<a data-filter="complete" href="/todos/complete">
-										Completed
-									</a>
+									<a data-filter="complete" href="/todos/complete">Completed</a>
 								</li>
 							</ul>
 							${
 								hasCompleteTodos
 									? /* html */ `
-										<form data-form="deleteCompletedTodos">
+										<form method="post">
+											<input
+												type="hidden"
+												name="intent"
+												value="deleteCompletedTodos"
+											/>
 											<button class="clear-completed">Clear completed</button>
 										</form>
 								  `

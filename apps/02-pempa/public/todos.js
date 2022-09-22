@@ -37,7 +37,9 @@ function updateLiCompletedState(li, completed) {
 	else liEl.removeClass('completed')
 
 	liEl.find('input[name=complete]').val(!completed)
-	const submitButtonEl = liEl.find('[data-form=toggleTodo] button[type=submit]')
+	const submitButtonEl = liEl.find(
+		'button[type=submit][name=intent][value=toggleTodo]',
+	)
 	submitButtonEl.attr(
 		'title',
 		completed ? 'Mark as incomplete' : 'Mark as complete',
@@ -73,7 +75,8 @@ $('ul.filters li a').on('click', async event => {
 $(document).on('submit', async event => {
 	event.preventDefault()
 	const form = event.target
-	switch (form.dataset.form) {
+	const { intent } = form.elements
+	switch (intent?.value) {
 		case 'toggleTodo': {
 			const { todoId: todoIdInput, complete: completeInput } = form.elements
 			const response = await fetch(`/api/todos/${todoIdInput.value}`, {
@@ -209,29 +212,31 @@ function renderListItem({ id, title, complete }) {
 	return /* html */ `
 		<li class="${complete ? 'completed' : ''}">
 			<div class="view">
-				<form data-form="toggleTodo">
+				<form>
 					<input type="hidden" name="todoId" value="${id}" />
 					<input type="hidden" name="complete" value="${!complete}" />
 					<button
 						type="submit"
-						name="submit"
+						name="intent"
+						value="toggleTodo"
 						class="toggle"
-						title="Mark as incomplete"
+						title="${complete ? 'Mark as incomplete' : 'Mark as complete'}"
 					>
 						${complete ? completeIcon() : incompleteIcon()}
 					</button>
 				</form>
-				<form class="update-form" data-form="updateTodo">
+				<form class="update-form" method="post">
 					<input type="hidden" name="todoId" value="${id}" />
 					<input name="title" class="edit-input" value="${title}" />
 				</form>
-				<form data-form="deleteTodo">
+				<form method="post">
 					<input type="hidden" name="todoId" value="${id}" />
 					<button
 						class="destroy"
 						title="Delete todo"
 						type="submit"
-						name="submit"
+						name="intent"
+						value="deleteTodo"
 					></button>
 				</form>
 			</div>
