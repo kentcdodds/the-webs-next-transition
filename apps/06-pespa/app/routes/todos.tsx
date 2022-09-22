@@ -68,7 +68,7 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function TodosRoute() {
-	const data = useLoaderData() as { todos: Array<Todo> }
+	const data = useLoaderData<typeof loader>()
 	const createFetcher = useFetcher()
 	const clearFetcher = useFetcher()
 	const toggleAllFetcher = useFetcher()

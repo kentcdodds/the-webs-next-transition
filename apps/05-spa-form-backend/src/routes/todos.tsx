@@ -20,7 +20,8 @@ export async function action({ request }: ActionFunctionArgs) {
 	return fetch('http://localhost:3000/api/todos', {
 		method: request.method,
 		headers: request.headers,
-		// @ts-expect-error
+		// @ts-expect-error we should be able to just do: `body: formData`
+		// but that wasn't working for some reason 😅
 		body: new URLSearchParams(formData.entries()),
 		signal: request.signal,
 	})
