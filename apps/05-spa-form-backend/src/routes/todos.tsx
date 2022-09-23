@@ -1,4 +1,5 @@
 import * as React from 'react'
+import './todos.css'
 import {
 	useLocation,
 	Link,
@@ -16,13 +17,10 @@ export async function loader() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-	const formData = await request.formData()
 	return fetch('http://localhost:3000/api/todos', {
 		method: request.method,
 		headers: request.headers,
-		// @ts-expect-error we should be able to just do: `body: formData`
-		// but that wasn't working for some reason 😅
-		body: new URLSearchParams(formData.entries()),
+		body: await request.text(),
 		signal: request.signal,
 	})
 }
@@ -72,7 +70,7 @@ export default function TodosRoute() {
 								autoFocus
 								aria-invalid={createFetcher.data?.error ? true : undefined}
 								aria-describedby="new-todo-error"
-								disabled={Boolean(createFetcher.formData)}
+								data-pending={Boolean(createFetcher.formData)}
 							/>
 							{createFetcher.data?.error ? (
 								<div className="error" id="new-todo-error">
@@ -108,8 +106,10 @@ export default function TodosRoute() {
 									todo={todo}
 									key={todo.id}
 									filter={filter}
-									disabled={Boolean(
-										toggleAllFetcher.formData ||
+									pending={Boolean(
+										(toggleAllFetcher.formData &&
+											toggleAllFetcher.formData.get('complete') !==
+												String(todo.complete)) ||
 											(clearFetcher.formData && todo.complete),
 									)}
 								/>
@@ -172,11 +172,11 @@ export default function TodosRoute() {
 function ListItem({
 	todo,
 	filter,
-	disabled: externallyDisabled,
+	pending: externallyPending,
 }: {
 	todo: Todo
 	filter: Filter
-	disabled: boolean
+	pending: boolean
 }) {
 	const updateFetcher = useFetcher()
 	const toggleFetcher = useFetcher()
@@ -184,8 +184,8 @@ function ListItem({
 	const updateFormRef = React.useRef<HTMLFormElement>(null)
 
 	const complete = todo.complete
-	const disabled = Boolean(
-		externallyDisabled ||
+	const pending = Boolean(
+		externallyPending ||
 			updateFetcher.formData ||
 			toggleFetcher.formData ||
 			deleteFetcher.formData,
@@ -210,7 +210,6 @@ function ListItem({
 						value="toggleTodo"
 						className="toggle"
 						title={complete ? 'Mark as incomplete' : 'Mark as complete'}
-						disabled={disabled}
 					>
 						{complete ? <CompleteIcon /> : <IncompleteIcon />}
 					</button>
@@ -233,7 +232,7 @@ function ListItem({
 						}}
 						aria-invalid={updateFetcher.data?.error ? true : undefined}
 						aria-describedby={`todo-update-error-${todo.id}`}
-						disabled={disabled}
+						data-pending={pending}
 					/>
 					{updateFetcher.data?.error && updateFetcher.state !== 'submitting' ? (
 						<div
@@ -252,7 +251,6 @@ function ListItem({
 						type="submit"
 						name="intent"
 						value="deleteTodo"
-						disabled={disabled}
 					/>
 				</deleteFetcher.Form>
 			</div>

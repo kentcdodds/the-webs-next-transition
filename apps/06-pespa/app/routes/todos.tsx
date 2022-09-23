@@ -68,7 +68,7 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function TodosRoute() {
-	const data = useLoaderData<typeof loader>()
+	const data = useLoaderData() as { todos: Array<Todo> }
 	const createFetcher = useFetcher()
 	const clearFetcher = useFetcher()
 	const toggleAllFetcher = useFetcher()
@@ -112,7 +112,7 @@ export default function TodosRoute() {
 								autoFocus
 								aria-invalid={createFetcher.data?.error ? true : undefined}
 								aria-describedby="new-todo-error"
-								disabled={Boolean(createFetcher.submission)}
+								data-pending={Boolean(createFetcher.submission)}
 							/>
 							{createFetcher.data?.error ? (
 								<div className="error" id="new-todo-error">
@@ -148,8 +148,10 @@ export default function TodosRoute() {
 									todo={todo}
 									key={todo.id}
 									filter={filter}
-									disabled={Boolean(
-										toggleAllFetcher.submission ||
+									pending={Boolean(
+										(toggleAllFetcher.submission &&
+											toggleAllFetcher.submission.formData?.get('complete') !==
+												String(todo.complete)) ||
 											(clearFetcher.submission && todo.complete),
 									)}
 								/>
@@ -212,11 +214,11 @@ export default function TodosRoute() {
 function ListItem({
 	todo,
 	filter,
-	disabled: externallyDisabled,
+	pending: externallyPending,
 }: {
 	todo: Todo
 	filter: Filter
-	disabled: boolean
+	pending: boolean
 }) {
 	const updateFetcher = useFetcher()
 	const toggleFetcher = useFetcher()
@@ -224,8 +226,8 @@ function ListItem({
 	const updateFormRef = React.useRef<HTMLFormElement>(null)
 
 	const complete = todo.complete
-	const disabled = Boolean(
-		externallyDisabled ||
+	const pending = Boolean(
+		externallyPending ||
 			updateFetcher.submission ||
 			toggleFetcher.submission ||
 			deleteFetcher.submission,
@@ -250,7 +252,6 @@ function ListItem({
 						value="toggleTodo"
 						className="toggle"
 						title={complete ? 'Mark as incomplete' : 'Mark as complete'}
-						disabled={disabled}
 					>
 						{complete ? <CompleteIcon /> : <IncompleteIcon />}
 					</button>
@@ -273,7 +274,7 @@ function ListItem({
 						}}
 						aria-invalid={updateFetcher.data?.error ? true : undefined}
 						aria-describedby={`todo-update-error-${todo.id}`}
-						disabled={disabled}
+						data-pending={pending}
 					/>
 					{updateFetcher.data?.error && updateFetcher.state !== 'submitting' ? (
 						<div
@@ -292,7 +293,6 @@ function ListItem({
 						type="submit"
 						name="intent"
 						value="deleteTodo"
-						disabled={disabled}
 					/>
 				</deleteFetcher.Form>
 			</div>

@@ -20,7 +20,7 @@ function updateTodoCount({ completeChange = 0, incompleteCount } = {}) {
 
 function updatePendingState(li, pending) {
 	const els = $(li).find('input, button')
-	els.attr('disabled', pending)
+	els.attr('data-pending', pending)
 }
 
 function handleCreateOrDestroyTodo() {
@@ -74,7 +74,7 @@ $('ul.filters li a').on('click', async event => {
 	event.preventDefault()
 	window.history.pushState({}, '', new URL(event.target.href).pathname)
 	const filter = getCurrentFilter()
-	$('.todoapp')[0].dataset.activeFilter = filter
+	$('.todoapp').attr('data-active-filter', filter)
 })
 
 $(document).on('submit', async event => {

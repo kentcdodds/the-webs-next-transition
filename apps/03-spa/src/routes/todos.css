@@ -359,7 +359,7 @@ html .clear-completed:active {
 	bottom: 4px;
 }
 
-[disabled] {
+[data-pending='true'] {
 	background-color: rgb(230 230 230);
 }
 

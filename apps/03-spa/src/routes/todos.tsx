@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useLocation, Link } from 'react-router-dom'
+import './todos.css'
 import { CompleteIcon, IncompleteIcon } from '../icons'
 
 type Filter = 'all' | 'active' | 'complete'
@@ -7,7 +8,18 @@ type Todo = { id: string; title: string; complete: boolean }
 
 export default function TodosRoute() {
 	const [todos, setTodos] = React.useState<Array<Todo>>([])
-	const [status, setStatus] = React.useState('loading')
+	const [statuses, setStatuses] = React.useState<{
+		loadingTodos: 'idle' | 'loading'
+		creatingTodo: 'idle' | 'loading'
+		togglingAllTodos: 'idle' | 'loading'
+		clearingCompleteTodos: 'idle' | 'loading'
+	}>({
+		loadingTodos: 'loading',
+		creatingTodo: 'idle',
+		togglingAllTodos: 'idle',
+		clearingCompleteTodos: 'idle',
+	})
+
 	const location = useLocation()
 
 	// initial load of todos
@@ -16,7 +28,7 @@ export default function TodosRoute() {
 			.then(res => res.json())
 			.then(({ todos }) => {
 				setTodos(todos)
-				setStatus('loaded')
+				setStatuses(old => ({ ...old, loadingTodos: 'idle' }))
 			})
 	}, [])
 
@@ -33,7 +45,7 @@ export default function TodosRoute() {
 
 	return (
 		<>
-			<section className="todoapp" data-status={status}>
+			<section className="todoapp" data-status={statuses.loadingTodos}>
 				<div>
 					<header className="header">
 						<h1>todos</h1>
@@ -47,7 +59,7 @@ export default function TodosRoute() {
 								) as HTMLInputElement
 								const title = titleInput.value.trim()
 								if (title.length === 0) return
-								titleInput.disabled = true
+								setStatuses(old => ({ ...old, creatingTodo: 'loading' }))
 								fetch(`http://localhost:3000/api/todos`, {
 									method: 'POST',
 									headers: { 'Content-Type': 'application/json' },
@@ -57,7 +69,7 @@ export default function TodosRoute() {
 									.then(data => {
 										setTodos([...todos, data.todo])
 										form.reset()
-										titleInput.disabled = false
+										setStatuses(old => ({ ...old, creatingTodo: 'idle' }))
 									})
 							}}
 						>
@@ -67,6 +79,7 @@ export default function TodosRoute() {
 								title="New todo title"
 								name="title"
 								autoFocus
+								data-pending={statuses.creatingTodo === 'loading'}
 							/>
 						</form>
 					</header>
@@ -76,9 +89,8 @@ export default function TodosRoute() {
 							title={
 								allComplete ? 'Mark all as incomplete' : 'Mark all as complete'
 							}
-							onClick={event => {
-								const toggleAllButton = event.currentTarget
-								toggleAllButton.disabled = true
+							onClick={() => {
+								setStatuses(old => ({ ...old, togglingAllTodos: 'loading' }))
 								fetch(`http://localhost:3000/api/todos`, {
 									method: 'PUT',
 									headers: { 'Content-Type': 'application/json' },
@@ -86,7 +98,7 @@ export default function TodosRoute() {
 								})
 									.then(res => res.json())
 									.then(data => {
-										toggleAllButton.disabled = false
+										setStatuses(old => ({ ...old, togglingAllTodos: 'idle' }))
 										setTodos(data.todos)
 									})
 							}}
@@ -99,6 +111,12 @@ export default function TodosRoute() {
 									todo={todo}
 									key={todo.id}
 									filter={filter}
+									pending={
+										(statuses.togglingAllTodos === 'loading' &&
+											todo.complete === allComplete) ||
+										(statuses.clearingCompleteTodos === 'loading' &&
+											todo.complete)
+									}
 									updateTodo={updates => {
 										setTodos(currentTodos =>
 											currentTodos.map(t =>
@@ -153,12 +171,20 @@ export default function TodosRoute() {
 							<button
 								className="clear-completed"
 								onClick={() => {
+									setStatuses(old => ({
+										...old,
+										clearingCompleteTodos: 'loading',
+									}))
 									fetch(`http://localhost:3000/api/todos`, {
 										method: 'DELETE',
 										headers: { 'Content-Type': 'application/json' },
 									})
 										.then(res => res.json())
 										.then(data => {
+											setStatuses(old => ({
+												...old,
+												clearingCompleteTodos: 'idle',
+											}))
 											setTodos(data.todos)
 										})
 								}}
@@ -181,15 +207,31 @@ export default function TodosRoute() {
 function ListItem({
 	todo,
 	filter,
+	pending: externalPending,
 	updateTodo,
 	removeTodo,
 }: {
 	todo: Todo
 	filter: Filter
+	pending: boolean
 	updateTodo: (todo: Todo) => void
 	removeTodo: () => void
 }) {
+	const [statuses, setStatuses] = React.useState<{
+		updating: 'idle' | 'loading'
+		toggling: 'idle' | 'loading'
+		deleting: 'idle' | 'loading'
+	}>({
+		updating: 'idle',
+		toggling: 'idle',
+		deleting: 'idle',
+	})
 	const complete = todo.complete
+	const pending =
+		externalPending ||
+		statuses.updating === 'loading' ||
+		statuses.toggling === 'loading' ||
+		statuses.deleting === 'loading'
 
 	const shouldRender =
 		filter === 'all' ||
@@ -204,9 +246,8 @@ function ListItem({
 				<button
 					className="toggle"
 					title={complete ? 'Mark as incomplete' : 'Mark as complete'}
-					onClick={event => {
-						const toggleButton = event.currentTarget
-						toggleButton.disabled = true
+					onClick={() => {
+						setStatuses(old => ({ ...old, toggling: 'loading' }))
 						fetch(`http://localhost:3000/api/todos/${todo.id}`, {
 							method: 'PUT',
 							headers: { 'Content-Type': 'application/json' },
@@ -214,7 +255,7 @@ function ListItem({
 						})
 							.then(res => res.json())
 							.then(data => {
-								toggleButton.disabled = false
+								setStatuses(old => ({ ...old, toggling: 'idle' }))
 								updateTodo(data.todo)
 							})
 					}}
@@ -225,6 +266,7 @@ function ListItem({
 					name="title"
 					className="edit-input"
 					defaultValue={todo.title}
+					data-pending={pending}
 					onKeyDown={e => {
 						e.key === 'Enter' && e.currentTarget.blur()
 					}}
@@ -232,13 +274,13 @@ function ListItem({
 						const input = e.currentTarget
 						const newTitle = input.value
 						if (todo.title !== newTitle) {
-							input.disabled = true
+							setStatuses(old => ({ ...old, updating: 'loading' }))
 							fetch(`http://localhost:3000/api/todos/${todo.id}`, {
 								method: 'PUT',
 								headers: { 'Content-Type': 'application/json' },
 								body: JSON.stringify({ title: newTitle }),
 							}).then(() => {
-								input.disabled = false
+								setStatuses(old => ({ ...old, updating: 'idle' }))
 							})
 						}
 					}}
@@ -246,9 +288,8 @@ function ListItem({
 				<button
 					className="destroy"
 					title="Delete todo"
-					onClick={event => {
-						const destroyButton = event.currentTarget
-						destroyButton.disabled = true
+					onClick={() => {
+						setStatuses(old => ({ ...old, deleting: 'loading' }))
 						fetch(`http://localhost:3000/api/todos/${todo.id}`, {
 							method: 'DELETE',
 						})
@@ -257,7 +298,7 @@ function ListItem({
 								if (data.success) {
 									removeTodo()
 								} else {
-									destroyButton.disabled = false
+									setStatuses(old => ({ ...old, deleting: 'idle' }))
 								}
 							})
 					}}
