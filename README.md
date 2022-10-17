@@ -1,4 +1,4 @@
-<h1 align="center"><a href="https://kentcdodds.com/talks/the-web-s-next-transformation">The Web's Next Transformation</a></h1>
+<h1 align="center"><a href="https://kentcdodds.com/talks/the-web-s-next-transition">The Web's Next Transition</a></h1>
 
 The web. What started as a document sharing platform has evolved into an
 application platform. The web has been through a number of transformations over
@@ -118,13 +118,13 @@ quite working as you expect.
 [npm]: https://www.npmjs.com/
 [node]: https://nodejs.org
 [git]: https://git-scm.com/
-[build-badge]: https://img.shields.io/github/workflow/status/kentcdodds/the-webs-next-transformation/%E2%9C%85%20Validate/main?logo=github&style=flat-square
-[build]: https://github.com/kentcdodds/the-webs-next-transformation/actions?query=workflow%3Avalidate
+[build-badge]: https://img.shields.io/github/workflow/status/kentcdodds/the-webs-next-transition/%E2%9C%85%20Validate/main?logo=github&style=flat-square
+[build]: https://github.com/kentcdodds/the-webs-next-transition/actions?query=workflow%3Avalidate
 [license-badge]: https://img.shields.io/badge/license-GPL%203.0%20License-blue.svg?style=flat-square
-[license]: https://github.com/kentcdodds/the-webs-next-transformation/blob/main/LICENSE
+[license]: https://github.com/kentcdodds/the-webs-next-transition/blob/main/LICENSE
 [coc-badge]: https://img.shields.io/badge/code%20of-conduct-ff69b4.svg?style=flat-square
 [coc]: https://kentcdodds.com/conduct
 [win-path]: https://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/
 [mac-path]: http://stackoverflow.com/a/24322978/971592
-[issue]: https://github.com/kentcdodds/the-webs-next-transformation/issues/new
+[issue]: https://github.com/kentcdodds/the-webs-next-transition/issues/new
 <!-- prettier-ignore-end -->
